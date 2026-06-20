@@ -163,10 +163,10 @@ function ProductModal({ product, onClose, onSave }) {
   })
 
   useEffect(() => {
-    const handleKey = (e) => { if (e.key === 'Escape') onClose() }
+    const handleKey = (e) => { if (e.key === 'Escape' && !saving) onClose() }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [onClose])
+  }, [onClose, saving])
 
   const handleOverlayClick = (e) => {
     if (e.target === overlayRef.current) onClose()
@@ -186,13 +186,24 @@ function ProductModal({ product, onClose, onSave }) {
     set('category', cat)
   }
 
-  const handleSubmit = (e) => {
+  const [saving,    setSaving]    = useState(false)
+  const [saveError,  setSaveError]  = useState('')
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!form.name.trim()) { toast.error('El nombre es obligatorio'); return }
     if (!form.price || Number(form.price) <= 0) { toast.error('El precio debe ser mayor a 0'); return }
     if (form.stock === '' || Number(form.stock) < 0) { toast.error('El stock no puede ser negativo'); return }
-    onSave(form, product)
-    onClose()
+    setSaving(true)
+    setSaveError('')
+    try {
+      await onSave(form, product)
+      onClose()
+    } catch (err) {
+      setSaveError(err.message || 'Error desconocido al guardar')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const inputCls =
@@ -368,20 +379,31 @@ function ProductModal({ product, onClose, onSave }) {
             <Toggle checked={form.is_bestseller} onChange={(v) => set('is_bestseller', v)} label="Más vendido" />
           </div>
 
+          {/* Error message */}
+          {saveError && (
+            <div className="mx-0 p-3 rounded-lg bg-red-900/30 border border-red-700 text-red-300 text-sm flex items-start gap-2">
+              <span className="mt-0.5 flex-shrink-0">⚠️</span>
+              <span>{saveError}</span>
+            </div>
+          )}
+
           {/* Footer */}
           <div className="flex justify-end gap-3 pt-2 border-t border-slate-700 mt-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 border border-slate-600 text-sm font-medium transition-colors"
+              disabled={saving}
+              className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 border border-slate-600 text-sm font-medium transition-colors disabled:opacity-50"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-lg bg-yellow-500 hover:bg-yellow-400 text-slate-950 text-sm font-semibold transition-colors"
+              disabled={saving}
+              className="px-5 py-2 rounded-lg bg-yellow-500 hover:bg-yellow-400 text-slate-950 text-sm font-semibold transition-colors disabled:opacity-60 flex items-center gap-2"
             >
-              {isEdit ? 'Guardar cambios' : 'Crear producto'}
+              {saving && <Loader size={14} className="animate-spin" />}
+              {saving ? 'Guardando...' : isEdit ? 'Guardar cambios' : 'Crear producto'}
             </button>
           </div>
         </form>
@@ -617,18 +639,16 @@ export default function Inventory() {
 
   // ── Row Actions ──────────────────────────────────────────────────────────
   const handleSaveProduct = async (formData, existingProduct) => {
-    try {
-      const saved = await saveProduct(formData, existingProduct)
-      setProducts(prev => {
-        const idx = prev.findIndex(p => p.id === saved.id)
-        if (idx === -1) return [saved, ...prev]
-        const next = [...prev]
-        next[idx] = saved
-        return next
-      })
-    } catch (err) {
-      toast.error(err.message || 'Error al guardar producto')
-    }
+    // throws on error so ProductModal can catch and display
+    const saved = await saveProduct(formData, existingProduct)
+    setProducts(prev => {
+      const idx = prev.findIndex(p => p.id === saved.id)
+      if (idx === -1) return [saved, ...prev]
+      const next = [...prev]
+      next[idx] = saved
+      return next
+    })
+    toast.success(existingProduct ? '✓ Producto actualizado' : '✓ Producto creado')
   }
 
   const handleDeleteConfirm = async () => {
