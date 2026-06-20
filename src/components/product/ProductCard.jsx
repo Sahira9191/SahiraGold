@@ -101,6 +101,15 @@ export default function ProductCard({ product, index = 0 }) {
           >
             <Heart size={14} fill={isWishlisted ? 'currentColor' : 'none'} />
           </button>
+
+          {/* Sahira Gold watermark */}
+          <div className="absolute bottom-2 right-2 pointer-events-none select-none">
+            <img
+              src="/logo-clean.png"
+              alt="Sahira Gold"
+              className="h-5 object-contain opacity-50 drop-shadow-sm"
+            />
+          </div>
         </div>
 
         {/* Info */}

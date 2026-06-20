@@ -2,10 +2,11 @@ import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Plus, Search, Edit, Trash2, Eye, X, Filter, Download, Upload,
-  ChevronDown, AlertTriangle, Check, Package, Image,
+  ChevronDown, AlertTriangle, Check, Package, Image, Loader, ImagePlus,
 } from 'lucide-react'
 import { MOCK_PRODUCTS, CATEGORIES } from '../../lib/mockData'
 import { toast } from 'sonner'
+import supabase from '../../lib/supabase'
 
 const MATERIALS = ['Oro 24K', 'Oro 18K', 'Oro 14K', 'Oro Blanco', 'Oro Rosa', 'Platino']
 const PAGE_SIZE = 15
@@ -31,6 +32,112 @@ function Toggle({ checked, onChange, label }) {
       </div>
       {label && <span className="text-sm text-slate-300">{label}</span>}
     </label>
+  )
+}
+
+// ─── Image Upload Component ──────────────────────────────────────────────────
+function ImageUpload({ index, value, onChange }) {
+  const [uploading, setUploading] = useState(false)
+  const [dragOver, setDragOver] = useState(false)
+  const fileRef = useRef(null)
+
+  const handleFile = async (file) => {
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      toast.error('Solo se permiten archivos de imagen')
+      return
+    }
+    setUploading(true)
+    // Preview local inmediato
+    const localUrl = URL.createObjectURL(file)
+    onChange(localUrl)
+    try {
+      const ext = file.name.split('.').pop().toLowerCase()
+      const filename = `product-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+      const { data, error } = await supabase.storage
+        .from('products')
+        .upload(filename, file, { cacheControl: '3600', upsert: false })
+      if (error) throw error
+      const { data: { publicUrl } } = supabase.storage
+        .from('products')
+        .getPublicUrl(data.path)
+      onChange(publicUrl)
+      toast.success(`Imagen ${index + 1} subida ✓`)
+    } catch (err) {
+      toast.error(err.message || 'Error al subir la imagen')
+      onChange('')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleDrop = (e) => {
+    e.preventDefault()
+    setDragOver(false)
+    const file = e.dataTransfer.files[0]
+    if (file) handleFile(file)
+  }
+
+  const inputCls = 'w-full bg-slate-700 border border-slate-600 text-slate-100 placeholder-slate-400 rounded-lg px-3 py-2 text-sm focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500/30 focus:outline-none'
+
+  return (
+    <div className="flex items-center gap-2">
+      {/* Thumbnail / Drop zone */}
+      <div
+        onClick={() => fileRef.current?.click()}
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={handleDrop}
+        className={`relative w-14 h-14 flex-shrink-0 rounded-lg border-2 border-dashed cursor-pointer overflow-hidden transition-all
+          ${dragOver ? 'border-yellow-400 bg-yellow-900/20 scale-105' : 'border-slate-600 bg-slate-700 hover:border-yellow-500'}`}
+      >
+        {value ? (
+          <img src={value} alt={`img-${index}`} className="w-full h-full object-cover" onError={(e) => e.target.src = ''} />
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full gap-0.5">
+            <ImagePlus size={14} className="text-slate-400" />
+            <span className="text-[9px] text-slate-500">Subir</span>
+          </div>
+        )}
+        {uploading && (
+          <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+            <Loader size={14} className="animate-spin text-yellow-400" />
+          </div>
+        )}
+        {value && !uploading && (
+          <div className="absolute inset-0 bg-black/0 hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 hover:opacity-100">
+            <Upload size={12} className="text-white" />
+          </div>
+        )}
+      </div>
+
+      {/* URL input + upload button */}
+      <div className="flex flex-1 gap-2">
+        <input
+          className={inputCls + ' flex-1'}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={`Imagen ${index + 1} — URL o sube archivo`}
+        />
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          disabled={uploading}
+          className="px-3 py-2 rounded-lg bg-slate-700 hover:bg-yellow-500/20 hover:border-yellow-500 text-slate-300 border border-slate-600 text-xs flex items-center gap-1.5 transition-colors flex-shrink-0 disabled:opacity-50"
+        >
+          {uploading ? <Loader size={12} className="animate-spin" /> : <Upload size={12} />}
+          {uploading ? 'Subiendo...' : 'Subir'}
+        </button>
+      </div>
+
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => handleFile(e.target.files[0])}
+      />
+    </div>
   )
 }
 
@@ -250,29 +357,18 @@ function ProductModal({ product, onClose, onSave }) {
 
           {/* Images */}
           <div>
-            <label className={labelCls}>Imágenes (URL)</label>
+            <label className={labelCls}>
+              Imágenes
+              <span className="ml-2 text-slate-500 normal-case font-normal">— arrastra, pega URL o haz clic para subir (jpg, png, webp…)</span>
+            </label>
             <div className="space-y-2">
               {[0, 1, 2].map((i) => (
-                <div key={i} className="flex items-center gap-2">
-                  {form.images[i] ? (
-                    <img
-                      src={form.images[i]}
-                      alt={`img-${i}`}
-                      className="w-9 h-9 rounded-md object-cover border border-slate-600 flex-shrink-0"
-                      onError={(e) => { e.target.style.display = 'none' }}
-                    />
-                  ) : (
-                    <div className="w-9 h-9 rounded-md bg-slate-700 border border-slate-600 flex items-center justify-center flex-shrink-0">
-                      <Image size={14} className="text-slate-500" />
-                    </div>
-                  )}
-                  <input
-                    className={inputCls}
-                    value={form.images[i]}
-                    onChange={(e) => setImage(i, e.target.value)}
-                    placeholder={`Imagen ${i + 1} — URL completa`}
-                  />
-                </div>
+                <ImageUpload
+                  key={i}
+                  index={i}
+                  value={form.images[i]}
+                  onChange={(val) => setImage(i, val)}
+                />
               ))}
             </div>
           </div>
