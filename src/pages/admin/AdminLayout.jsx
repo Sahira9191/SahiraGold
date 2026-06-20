@@ -145,9 +145,9 @@ export default function AdminLayout() {
     return () => window.removeEventListener('keydown', handleKey)
   }, [])
 
-  /* Auth guards — comentar para desarrollo local */
-  // if (!user) return <Navigate to="/auth" replace />
-  // if (!isAdmin()) return <Navigate to="/" replace />
+  /* Auth guards */
+  if (!user) return <Navigate to="/auth" replace />
+  if (!isAdmin()) return <Navigate to="/" replace />
 
   /* Derive topbar page title */
   const pageTitle =
