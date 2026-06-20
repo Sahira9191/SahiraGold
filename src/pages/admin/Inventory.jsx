@@ -4,9 +4,10 @@ import {
   Plus, Search, Edit, Trash2, Eye, X, Filter, Download, Upload,
   ChevronDown, AlertTriangle, Check, Package, Image, Loader, ImagePlus,
 } from 'lucide-react'
-import { MOCK_PRODUCTS, CATEGORIES } from '../../lib/mockData'
+import { CATEGORIES } from '../../lib/mockData'
 import { toast } from 'sonner'
 import supabase from '../../lib/supabase'
+import { useProducts } from '../../hooks/useProducts'
 
 const MATERIALS = ['Oro 24K', 'Oro 18K', 'Oro 14K', 'Oro Blanco', 'Oro Rosa', 'Platino']
 const PAGE_SIZE = 15
@@ -190,20 +191,7 @@ function ProductModal({ product, onClose, onSave }) {
     if (!form.name.trim()) { toast.error('El nombre es obligatorio'); return }
     if (!form.price || Number(form.price) <= 0) { toast.error('El precio debe ser mayor a 0'); return }
     if (form.stock === '' || Number(form.stock) < 0) { toast.error('El stock no puede ser negativo'); return }
-
-    const saved = {
-      ...product,
-      ...form,
-      price: Number(form.price),
-      compare_price: form.compare_price ? Number(form.compare_price) : null,
-      stock: Number(form.stock),
-      weight: Number(form.weight) || 0,
-      images: form.images.filter(Boolean).length
-        ? form.images
-        : product?.images ?? ['', '', ''],
-    }
-    onSave(saved)
-    toast.success(isEdit ? 'Producto actualizado' : 'Producto creado')
+    onSave(form, product)
     onClose()
   }
 
@@ -535,9 +523,12 @@ function SortIcon({ col, sortBy, sortDir }) {
   )
 }
 
-// ─── Main Inventory Page ──────────────────────────────────────────────────────
+// ─── Main Inventory Page ───────────────────────────────────────────────────────────
 export default function Inventory() {
-  const [products, setProducts] = useState(() => [...MOCK_PRODUCTS])
+  const {
+    products, loading, setProducts, refetch,
+    saveProduct, deleteProduct, updateStock,
+  } = useProducts({ adminMode: true })
   const [search, setSearch] = useState('')
   const [filterCategory, setFilterCategory] = useState('all')
   const [filterStatus, setFilterStatus] = useState('all')
@@ -625,42 +616,42 @@ export default function Inventory() {
   }
 
   // ── Row Actions ──────────────────────────────────────────────────────────
-  const handleSaveProduct = (saved) => {
-    setProducts((prev) => {
-      const idx = prev.findIndex((p) => p.id === saved.id)
-      if (idx === -1) {
-        const newProduct = {
-          ...saved,
-          id: `prod-new-${Date.now()}`,
-          slug: `producto-nuevo-${Date.now()}`,
-          rating: '4.5',
-          reviews_count: 0,
-          created_at: new Date().toISOString(),
-        }
-        return [newProduct, ...prev]
-      }
-      const next = [...prev]
-      next[idx] = saved
-      return next
-    })
+  const handleSaveProduct = async (formData, existingProduct) => {
+    try {
+      const saved = await saveProduct(formData, existingProduct)
+      setProducts(prev => {
+        const idx = prev.findIndex(p => p.id === saved.id)
+        if (idx === -1) return [saved, ...prev]
+        const next = [...prev]
+        next[idx] = saved
+        return next
+      })
+    } catch (err) {
+      toast.error(err.message || 'Error al guardar producto')
+    }
   }
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (!deleteTarget) return
-    setProducts((prev) => prev.filter((p) => p.id !== deleteTarget.id))
-    setSelectedIds((prev) => {
-      const next = new Set(prev)
-      next.delete(deleteTarget.id)
-      return next
-    })
-    toast.success(`"${deleteTarget.name}" eliminado`)
-    setDeleteTarget(null)
+    try {
+      await deleteProduct(deleteTarget.id)
+      setProducts(prev => prev.filter(p => p.id !== deleteTarget.id))
+      setSelectedIds(prev => { const next = new Set(prev); next.delete(deleteTarget.id); return next })
+      toast.success(`"${deleteTarget.name}" eliminado`)
+    } catch (err) {
+      toast.error(err.message || 'Error al eliminar')
+    } finally {
+      setDeleteTarget(null)
+    }
   }
 
-  const handleStockUpdate = (productId, newStock) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === productId ? { ...p, stock: newStock } : p))
-    )
+  const handleStockUpdate = async (productId, newStock) => {
+    try {
+      await updateStock(productId, newStock)
+      setProducts(prev => prev.map(p => p.id === productId ? { ...p, stock: newStock } : p))
+    } catch {
+      toast.error('Error al actualizar stock')
+    }
   }
 
   // ── Sort Toggle ──────────────────────────────────────────────────────────

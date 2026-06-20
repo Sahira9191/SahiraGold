@@ -8,7 +8,8 @@ import 'swiper/css/pagination'
 import 'swiper/css/navigation'
 import { ArrowRight, Play, Star, ChevronLeft, ChevronRight } from 'lucide-react'
 import ProductCard from '../components/product/ProductCard'
-import { MOCK_PRODUCTS, FEATURED_COLLECTIONS, TESTIMONIALS } from '../lib/mockData'
+import { FEATURED_COLLECTIONS, TESTIMONIALS } from '../lib/mockData'
+import { useProducts } from '../hooks/useProducts'
 
 /* ─── Newsletter Popup ───────────────────────────── */
 function NewsletterPopup() {
@@ -380,7 +381,8 @@ function CollectionsSection() {
 
 /* ─── New Arrivals Carousel ───────────────────────── */
 function NewArrivalsSection() {
-  const newProducts = MOCK_PRODUCTS.slice(0, 12)
+  const { products } = useProducts()
+  const newProducts = products.slice(0, 12)
 
   return (
     <section className="py-24 bg-white dark:bg-obsidian-900">
@@ -489,7 +491,8 @@ function OurStorySection() {
 
 /* ─── Bestsellers Grid ────────────────────────────── */
 function BestsellersSection() {
-  const bestsellers = MOCK_PRODUCTS.filter((p) => p.is_bestseller).slice(0, 4)
+  const { products } = useProducts()
+  const bestsellers = products.filter((p) => p.is_bestseller).slice(0, 4)
 
   return (
     <section className="py-24 bg-cream-100 dark:bg-obsidian-900/50">

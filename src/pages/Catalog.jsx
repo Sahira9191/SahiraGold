@@ -1,10 +1,11 @@
 import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useSearchParams } from 'react-router-dom'
-import { SlidersHorizontal, Grid, List, ChevronDown, X, Search } from 'lucide-react'
+import { SlidersHorizontal, Grid, List, ChevronDown, X, Search, Loader } from 'lucide-react'
 import ProductCard from '../components/product/ProductCard'
-import { MOCK_PRODUCTS, CATEGORIES, MATERIALS } from '../lib/mockData'
+import { CATEGORIES, MATERIALS } from '../lib/mockData'
 import useFilterStore from '../store/filterStore'
+import { useProducts } from '../hooks/useProducts'
 
 const SORT_OPTIONS = [
   { value: 'newest', label: 'Más recientes' },
@@ -160,6 +161,8 @@ export default function Catalog() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [sortOpen, setSortOpen] = useState(false)
 
+  const { products: allProducts, loading } = useProducts()
+
   const {
     category, material, priceRange, onlyAvailable, sortBy, setSortBy, view, setView
   } = useFilterStore()
@@ -167,12 +170,12 @@ export default function Catalog() {
   const urlSearch = searchParams.get('search') || ''
 
   const filtered = useMemo(() => {
-    let products = [...MOCK_PRODUCTS]
+    let products = [...allProducts]
 
     if (urlSearch) {
       products = products.filter(p =>
         p.name.toLowerCase().includes(urlSearch.toLowerCase()) ||
-        p.material.toLowerCase().includes(urlSearch.toLowerCase())
+        p.material?.toLowerCase().includes(urlSearch.toLowerCase())
       )
     }
     if (category) {
@@ -195,7 +198,7 @@ export default function Catalog() {
     }
 
     return products
-  }, [category, material, priceRange, onlyAvailable, sortBy, urlSearch])
+  }, [allProducts, category, material, priceRange, onlyAvailable, sortBy, urlSearch])
 
   return (
     <div className="min-h-screen bg-cream-50 dark:bg-obsidian-950">
@@ -289,7 +292,11 @@ export default function Catalog() {
             </div>
 
             {/* Products grid */}
-            {filtered.length === 0 ? (
+            {loading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                {Array.from({ length: 6 }).map((_, i) => <ProductSkeleton key={i} />)}
+              </div>
+            ) : filtered.length === 0 ? (
               <div className="text-center py-24">
                 <Search size={48} className="text-cream-300 mx-auto mb-4" />
                 <p className="font-display text-xl text-obsidian-400 mb-2">No se encontraron productos</p>
