@@ -58,7 +58,9 @@ export default function AuthPage() {
         toast.success('¡Cuenta creada exitosamente!')
         navigate('/cuenta')
       } else if (mode === 'magic') {
-        const { error } = await supabase.auth.resetPasswordForEmail(data.email)
+        const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
+          redirectTo: `${window.location.origin}/auth?reset=true`,
+        })
         if (error) throw error
         toast.success('Revisa tu email para el enlace mágico')
       }
