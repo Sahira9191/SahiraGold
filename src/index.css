@@ -1,0 +1,191 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Base ──────────────────────────────────────────── */
+@layer base {
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #f5ce64;
+    --cream: #FAF5EB;
+    --obsidian: #0a0a0a;
+    scroll-behavior: smooth;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    @apply font-sans antialiased;
+    font-feature-settings: 'kern' 1, 'liga' 1;
+  }
+
+  body {
+    @apply bg-cream-50 text-obsidian-950;
+    overflow-x: hidden;
+  }
+
+  .dark body {
+    @apply bg-obsidian-950 text-cream-100;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-display;
+  }
+
+  ::selection {
+    background-color: rgba(201, 168, 76, 0.25);
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { @apply bg-cream-100; }
+  ::-webkit-scrollbar-thumb { @apply bg-gold-500 rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-gold-600; }
+}
+
+/* ─── Components ─────────────────────────────────────── */
+@layer components {
+  /* Buttons */
+  .btn-gold {
+    @apply inline-flex items-center justify-center gap-2
+           px-6 py-3 rounded-none font-sans font-medium tracking-widest text-sm uppercase
+           bg-gold-gradient text-obsidian-950
+           transition-all duration-300 ease-luxury
+           hover:shadow-gold hover:scale-[1.02] active:scale-[0.98]
+           focus:outline-none focus:ring-2 focus:ring-gold-500 focus:ring-offset-2;
+  }
+
+  .btn-outline-gold {
+    @apply inline-flex items-center justify-center gap-2
+           px-6 py-3 rounded-none font-sans font-medium tracking-widest text-sm uppercase
+           border border-gold-500 text-gold-500 bg-transparent
+           transition-all duration-300 ease-luxury
+           hover:bg-gold-500 hover:text-obsidian-950
+           focus:outline-none focus:ring-2 focus:ring-gold-500 focus:ring-offset-2;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2
+           px-4 py-2 rounded-none font-sans text-sm
+           text-obsidian-600 hover:text-gold-600
+           transition-colors duration-200;
+  }
+
+  /* Cards */
+  .card-product {
+    @apply relative overflow-hidden bg-white
+           border border-cream-200 hover:border-gold-300
+           transition-all duration-500 ease-luxury
+           hover:shadow-luxury;
+  }
+
+  /* Gold text gradient */
+  .text-gold-gradient {
+    @apply bg-gold-gradient bg-clip-text text-transparent;
+  }
+
+  /* Section titles */
+  .section-title {
+    @apply font-display text-3xl md:text-4xl lg:text-5xl font-semibold
+           text-obsidian-900 dark:text-cream-100 leading-tight;
+  }
+
+  .section-subtitle {
+    @apply font-sans text-base md:text-lg text-obsidian-500 dark:text-obsidian-400
+           font-light tracking-wide;
+  }
+
+  /* Gold divider */
+  .divider-gold {
+    @apply w-16 h-px bg-gold-gradient mx-auto my-4;
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 text-xs font-medium tracking-wide uppercase;
+  }
+  .badge-gold {
+    @apply badge bg-gold-100 text-gold-700 border border-gold-200;
+  }
+  .badge-sale {
+    @apply badge bg-red-50 text-red-600 border border-red-100;
+  }
+  .badge-new {
+    @apply badge bg-obsidian-950 text-cream-50;
+  }
+  .badge-sold-out {
+    @apply badge bg-obsidian-100 text-obsidian-500 border border-obsidian-200;
+  }
+
+  /* Input */
+  .input-luxury {
+    @apply w-full px-4 py-3 bg-white border border-cream-300
+           text-obsidian-900 placeholder-obsidian-400
+           focus:outline-none focus:ring-1 focus:ring-gold-500 focus:border-gold-500
+           transition-colors duration-200 text-sm;
+  }
+
+  /* Skeleton loader */
+  .skeleton {
+    @apply bg-gradient-to-r from-cream-100 via-cream-200 to-cream-100
+           bg-[length:200%_100%] animate-shimmer rounded;
+  }
+
+  /* Price */
+  .price-current {
+    @apply font-display text-xl font-semibold text-obsidian-900 dark:text-cream-100;
+  }
+  .price-compare {
+    @apply text-sm text-obsidian-400 line-through font-sans;
+  }
+  .price-discount {
+    @apply text-sm font-medium text-red-500;
+  }
+
+  /* Container luxury */
+  .container-luxury {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Nav link */
+  .nav-link {
+    @apply relative text-sm font-medium tracking-widest uppercase
+           text-obsidian-700 dark:text-cream-200
+           hover:text-gold-600 dark:hover:text-gold-400
+           transition-colors duration-200
+           after:absolute after:bottom-0 after:left-0 after:w-0 after:h-px
+           after:bg-gold-500 after:transition-all after:duration-300
+           hover:after:w-full;
+  }
+
+  /* Overlay */
+  .overlay-dark {
+    @apply absolute inset-0 bg-gradient-to-t from-obsidian-950/80 via-obsidian-950/20 to-transparent;
+  }
+}
+
+/* ─── Utilities ──────────────────────────────────────── */
+@layer utilities {
+  .writing-vertical {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+  }
+
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* Swiper customization */
+  .swiper-pagination-bullet-active {
+    background: var(--gold) !important;
+  }
+  .swiper-button-next,
+  .swiper-button-prev {
+    color: var(--gold) !important;
+  }
+}
