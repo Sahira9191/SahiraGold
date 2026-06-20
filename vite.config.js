@@ -12,12 +12,12 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          'react-vendor':  ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor':     ['framer-motion', 'swiper', 'lucide-react'],
-          'data-vendor':   ['zustand', '@tanstack/react-query'],
-          'forms-vendor':  ['react-hook-form', 'zod', '@hookform/resolvers'],
-          'stripe-vendor': ['@stripe/stripe-js', '@stripe/react-stripe-js'],
+        manualChunks(id) {
+          if (id.includes('node_modules/react') || id.includes('react-router-dom')) return 'react-vendor'
+          if (id.includes('framer-motion') || id.includes('swiper') || id.includes('lucide-react')) return 'ui-vendor'
+          if (id.includes('zustand') || id.includes('@tanstack')) return 'data-vendor'
+          if (id.includes('react-hook-form') || id.includes('zod') || id.includes('@hookform')) return 'forms-vendor'
+          if (id.includes('@stripe')) return 'stripe-vendor'
         },
       },
     },
