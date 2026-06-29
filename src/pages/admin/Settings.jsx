@@ -49,14 +49,18 @@ function Toggle({ checked, onChange, label, description }) {
   );
 }
 
-function SaveButton({ onClick, label = 'Guardar cambios' }) {
+function SaveButton({ onClick, saving = false, label = 'Guardar cambios' }) {
   return (
     <div className="pt-2">
       <button
         onClick={onClick}
-        className="flex items-center gap-2 px-5 py-2.5 bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-semibold text-sm rounded-lg transition-colors"
+        disabled={saving}
+        className="flex items-center gap-2 px-5 py-2.5 bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-semibold text-sm rounded-lg transition-colors disabled:opacity-60"
       >
-        <Save size={15} /> {label}
+        {saving
+          ? <><span className="w-3.5 h-3.5 border-2 border-slate-800/50 border-t-slate-950 rounded-full animate-spin" />Guardando...</>
+          : <><Save size={15} />{label}</>
+        }
       </button>
     </div>
   );
@@ -76,19 +80,41 @@ function SectionCard({ title, description, children }) {
   );
 }
 
+// ─── localStorage helpers ──────────────────────────────────────────────────────
+const LS = {
+  get: (key, fallback) => {
+    try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
+  },
+  set: (key, val) => {
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+  },
+};
+
 // ─── 1. Tienda ─────────────────────────────────────────────────────────────────
 
+const TIENDA_DEFAULT = {
+  nombre: 'Sahira Gold Collection',
+  email: 'hola@sahiragoldcollection.com',
+  telefono: '+52 55 1234 5678',
+  direccion: 'Av. Presidente Masaryk 111, Polanco, CDMX 11560',
+  moneda: 'MXN',
+  zona: 'America/Mexico_City',
+};
+
 function TiendaSection() {
-  const [form, setForm] = useState({
-    nombre: 'Sahira Gold Collection',
-    email: 'hola@sahiragoldcollection.com',
-    telefono: '+52 55 1234 5678',
-    direccion: 'Av. Presidente Masaryk 111, Polanco, CDMX 11560',
-    moneda: 'MXN',
-    zona: 'America/Mexico_City',
-  });
+  const [form, setForm] = useState(() => LS.get('sg_settings_tienda', TIENDA_DEFAULT));
+  const [saving, setSaving] = useState(false);
 
   const f = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+  const handleSave = () => {
+    setSaving(true);
+    setTimeout(() => {
+      LS.set('sg_settings_tienda', form);
+      setSaving(false);
+      toast.success('✓ Información de la tienda guardada');
+    }, 400);
+  };
 
   return (
     <div className="space-y-6">
@@ -128,7 +154,7 @@ function TiendaSection() {
             <option value="America/Tijuana">America/Tijuana (GMT-8)</option>
           </select>
         </Field>
-        <SaveButton onClick={() => toast.success('Información de tienda guardada')} />
+        <SaveButton onClick={handleSave} saving={saving} />
       </SectionCard>
     </div>
   );
@@ -136,53 +162,34 @@ function TiendaSection() {
 
 // ─── 2. Envío ──────────────────────────────────────────────────────────────────
 
-function EnvioSection() {
-  const [form, setForm] = useState({
-    costoEstandar: 150,
-    umbralGratis: 2000,
-    envioGratisActivo: true,
-    diasEntrega: 3,
-  });
+const ENVIO_DEFAULT = { costoEstandar: 150, umbralGratis: 2000, envioGratisActivo: true, diasEntrega: 3 };
 
+function EnvioSection() {
+  const [form, setForm] = useState(() => LS.get('sg_settings_envio', ENVIO_DEFAULT));
+  const [saving, setSaving] = useState(false);
   const f = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+  const handleSave = () => {
+    setSaving(true);
+    setTimeout(() => { LS.set('sg_settings_envio', form); setSaving(false); toast.success('✓ Configuración de envío guardada'); }, 400);
+  };
 
   return (
     <div className="space-y-6">
       <SectionCard title="Configuración de envíos" description="Tarifas y políticas de envío para la tienda.">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Costo de envío estándar (MXN)" hint="Se aplica cuando no aplica envío gratis.">
-            <Input
-              type="number"
-              min={0}
-              value={form.costoEstandar}
-              onChange={e => f('costoEstandar', parseFloat(e.target.value) || 0)}
-            />
+            <Input type="number" min={0} value={form.costoEstandar} onChange={e => f('costoEstandar', parseFloat(e.target.value) || 0)} />
           </Field>
           <Field label="Umbral de envío gratis (MXN)" hint="Compras mayores a este monto tienen envío gratis.">
-            <Input
-              type="number"
-              min={0}
-              value={form.umbralGratis}
-              onChange={e => f('umbralGratis', parseFloat(e.target.value) || 0)}
-            />
+            <Input type="number" min={0} value={form.umbralGratis} onChange={e => f('umbralGratis', parseFloat(e.target.value) || 0)} />
           </Field>
           <Field label="Días estimados de entrega" hint="Días hábiles promedio.">
-            <Input
-              type="number"
-              min={1}
-              max={30}
-              value={form.diasEntrega}
-              onChange={e => f('diasEntrega', parseInt(e.target.value) || 1)}
-            />
+            <Input type="number" min={1} max={30} value={form.diasEntrega} onChange={e => f('diasEntrega', parseInt(e.target.value) || 1)} />
           </Field>
         </div>
-        <Toggle
-          checked={form.envioGratisActivo}
-          onChange={v => f('envioGratisActivo', v)}
-          label="Envío gratis activado"
-          description={`Ofrecer envío gratis en compras mayores a $${form.umbralGratis.toLocaleString('es-MX')} MXN`}
-        />
-        <SaveButton onClick={() => toast.success('Configuración de envío guardada')} />
+        <Toggle checked={form.envioGratisActivo} onChange={v => f('envioGratisActivo', v)} label="Envío gratis activado" description={`Ofrecer envío gratis en compras mayores a $${form.umbralGratis.toLocaleString('es-MX')} MXN`} />
+        <SaveButton onClick={handleSave} saving={saving} />
       </SectionCard>
     </div>
   );
@@ -190,11 +197,20 @@ function EnvioSection() {
 
 // ─── 3. Pagos ──────────────────────────────────────────────────────────────────
 
+const MSI_DEFAULT = { 3: true, 6: true, 12: true, 18: false };
+const METODOS_DEFAULT = { oxxo: true, paypal: true, tarjeta: true };
+
 function PagosSection() {
-  const [msi, setMsi] = useState({ 3: true, 6: true, 12: true, 18: false });
-  const [metodos, setMetodos] = useState({ oxxo: true, paypal: true, tarjeta: true });
+  const [msi, setMsi] = useState(() => LS.get('sg_settings_msi', MSI_DEFAULT));
+  const [metodos, setMetodos] = useState(() => LS.get('sg_settings_metodos', METODOS_DEFAULT));
+  const [saving, setSaving] = useState(false);
   const toggleMsi = m => setMsi(p => ({ ...p, [m]: !p[m] }));
   const toggleMetodo = m => setMetodos(p => ({ ...p, [m]: !p[m] }));
+
+  const handleSave = () => {
+    setSaving(true);
+    setTimeout(() => { LS.set('sg_settings_msi', msi); LS.set('sg_settings_metodos', metodos); setSaving(false); toast.success('✓ Configuración de pagos guardada'); }, 400);
+  };
 
   return (
     <div className="space-y-6">
@@ -202,21 +218,16 @@ function PagosSection() {
         <Toggle checked={metodos.tarjeta} onChange={() => toggleMetodo('tarjeta')} label="Tarjeta de crédito / débito" description="Visa, Mastercard, American Express" />
         <Toggle checked={metodos.paypal} onChange={() => toggleMetodo('paypal')} label="PayPal" description="Pago mediante cuenta PayPal" />
         <Toggle checked={metodos.oxxo} onChange={() => toggleMetodo('oxxo')} label="OXXO Pay" description="Referencia de pago en tiendas OXXO" />
-        <SaveButton onClick={() => toast.success('Métodos de pago guardados')} />
+        <SaveButton onClick={handleSave} saving={saving} />
       </SectionCard>
 
       <SectionCard title="Meses sin intereses (MSI)" description="Opciones de pago diferido disponibles.">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[3, 6, 12, 18].map(m => (
-            <button
-              key={m}
-              onClick={() => toggleMsi(m)}
+            <button key={m} onClick={() => toggleMsi(m)}
               className={`flex flex-col items-center py-4 rounded-xl border-2 transition-all ${
-                msi[m]
-                  ? 'bg-yellow-500/10 border-yellow-500 text-yellow-400'
-                  : 'bg-slate-700 border-slate-600 text-slate-400 hover:border-slate-500'
-              }`}
-            >
+                msi[m] ? 'bg-yellow-500/10 border-yellow-500 text-yellow-400' : 'bg-slate-700 border-slate-600 text-slate-400 hover:border-slate-500'
+              }`}>
               <span className="text-2xl font-bold">{m}</span>
               <span className="text-xs mt-1">meses</span>
               {msi[m] && <Check size={14} className="mt-2" />}
@@ -227,7 +238,7 @@ function PagosSection() {
           <span className="text-sm text-slate-400">CAT Informativo</span>
           <span className="text-sm font-semibold text-slate-100 font-mono">7.9%</span>
         </div>
-        <SaveButton onClick={() => toast.success('Configuración de MSI guardada')} />
+        <SaveButton onClick={handleSave} saving={saving} />
       </SectionCard>
     </div>
   );
@@ -235,44 +246,28 @@ function PagosSection() {
 
 // ─── 4. Notificaciones ─────────────────────────────────────────────────────────
 
+const NOTIF_DEFAULT = { emailCliente: true, emailAdmin: true, whatsappCliente: false, adminEmail: 'admin@sahiragoldcollection.com' };
+
 function NotificacionesSection() {
-  const [form, setForm] = useState({
-    emailCliente: true,
-    emailAdmin: true,
-    whatsappCliente: false,
-    adminEmail: 'admin@sahiragoldcollection.com',
-  });
+  const [form, setForm] = useState(() => LS.get('sg_settings_notif', NOTIF_DEFAULT));
+  const [saving, setSaving] = useState(false);
   const f = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+  const handleSave = () => {
+    setSaving(true);
+    setTimeout(() => { LS.set('sg_settings_notif', form); setSaving(false); toast.success('✓ Notificaciones actualizadas'); }, 400);
+  };
 
   return (
     <div className="space-y-6">
       <SectionCard title="Alertas y notificaciones" description="Controla cuándo y cómo se envían notificaciones.">
-        <Toggle
-          checked={form.emailCliente}
-          onChange={v => f('emailCliente', v)}
-          label="Email al cliente al crear pedido"
-          description="Confirmación de compra automática por correo."
-        />
-        <Toggle
-          checked={form.emailAdmin}
-          onChange={v => f('emailAdmin', v)}
-          label="Email al admin por nuevo pedido"
-          description="Notificación al correo del administrador."
-        />
-        <Toggle
-          checked={form.whatsappCliente}
-          onChange={v => f('whatsappCliente', v)}
-          label="WhatsApp al cliente"
-          description="Enviar confirmación vía WhatsApp Business API."
-        />
+        <Toggle checked={form.emailCliente} onChange={v => f('emailCliente', v)} label="Email al cliente al crear pedido" description="Confirmación de compra automática por correo." />
+        <Toggle checked={form.emailAdmin} onChange={v => f('emailAdmin', v)} label="Email al admin por nuevo pedido" description="Notificación al correo del administrador." />
+        <Toggle checked={form.whatsappCliente} onChange={v => f('whatsappCliente', v)} label="WhatsApp al cliente" description="Enviar confirmación vía WhatsApp Business API." />
         <Field label="Email del administrador" hint="Dirección donde se reciben los avisos de nuevos pedidos.">
-          <Input
-            type="email"
-            value={form.adminEmail}
-            onChange={e => f('adminEmail', e.target.value)}
-          />
+          <Input type="email" value={form.adminEmail} onChange={e => f('adminEmail', e.target.value)} />
         </Field>
-        <SaveButton onClick={() => toast.success('Notificaciones actualizadas')} />
+        <SaveButton onClick={handleSave} saving={saving} />
       </SectionCard>
     </div>
   );
