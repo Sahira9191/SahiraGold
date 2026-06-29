@@ -98,7 +98,7 @@ const TIENDA_DEFAULT = {
   telefono: '+52 55 1234 5678',
   direccion: 'Av. Presidente Masaryk 111, Polanco, CDMX 11560',
   moneda: 'MXN',
-  zona: 'America/Mexico_City',
+  zona: 'America/New_York',
 };
 
 function TiendaSection() {
@@ -149,9 +149,20 @@ function TiendaSection() {
             onChange={e => f('zona', e.target.value)}
             className="w-full bg-slate-700 border border-slate-600 text-slate-100 text-sm rounded-lg px-3 py-2.5 focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500/30 outline-none"
           >
-            <option value="America/Mexico_City">America/Mexico_City (GMT-6)</option>
-            <option value="America/Monterrey">America/Monterrey (GMT-6)</option>
-            <option value="America/Tijuana">America/Tijuana (GMT-8)</option>
+            <optgroup label="🇺🇸 Estados Unidos">
+              <option value="America/New_York">New York, NY (GMT-4)</option>
+              <option value="America/Chicago">Chicago, IL (GMT-5)</option>
+              <option value="America/Denver">Denver, CO (GMT-6)</option>
+              <option value="America/Los_Angeles">Los Angeles, CA (GMT-7)</option>
+              <option value="America/Phoenix">Phoenix, AZ (GMT-7)</option>
+              <option value="Pacific/Honolulu">Honolulu, HI (GMT-10)</option>
+            </optgroup>
+            <optgroup label="🇲🇽 México">
+              <option value="America/Mexico_City">Ciudad de México (GMT-6)</option>
+              <option value="America/Monterrey">Monterrey (GMT-6)</option>
+              <option value="America/Tijuana">Tijuana (GMT-8)</option>
+              <option value="America/Cancun">Cancún (GMT-5)</option>
+            </optgroup>
           </select>
         </Field>
         <SaveButton onClick={handleSave} saving={saving} />
