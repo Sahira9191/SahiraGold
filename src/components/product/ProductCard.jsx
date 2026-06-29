@@ -4,14 +4,13 @@ import { motion } from 'framer-motion'
 import { Heart, ShoppingBag, Star, Eye } from 'lucide-react'
 import useCartStore from '../../store/cartStore'
 import useAuthStore from '../../store/authStore'
-
-const formatPrice = (n) =>
-  new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(n)
+import useSettingsStore from '../../store/settingsStore'
 
 export default function ProductCard({ product, index = 0 }) {
   const [hovered, setHovered] = useState(false)
   const [added, setAdded] = useState(false)
   const [imgLoaded, setImgLoaded] = useState(false)
+  const formatPrice = useSettingsStore(s => s.formatPrice)
 
   const addItem = useCartStore((s) => s.addItem)
   const openCart = useCartStore((s) => s.openCart)

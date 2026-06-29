@@ -10,9 +10,9 @@ import {
   BadgePercent, CalendarClock, Info
 } from 'lucide-react'
 import useCartStore from '../store/cartStore'
+import useSettingsStore from '../store/settingsStore'
 
-const formatPrice = (n) =>
-  new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(n)
+const useFormatPrice = () => useSettingsStore(s => s.formatPrice)
 
 /* ─── Financing plans config ─────────────────── */
 const FINANCING_PLANS = [
@@ -438,6 +438,7 @@ const shippingSchema = z.object({
 export default function Checkout() {
   const [searchParams]   = useSearchParams()
   const isFinanceMode    = searchParams.get('mode') === 'financiamiento'
+  const formatPrice      = useFormatPrice()
 
   const [step, setStep]             = useState(1)
   const [contactData, setContactData] = useState(null)

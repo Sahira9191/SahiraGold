@@ -4,6 +4,7 @@ import {
   Store, Truck, CreditCard, Bell, User, Shield, Save, Check,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import useSettingsStore from '../../store/settingsStore';
 
 // ─── Shared UI primitives ──────────────────────────────────────────────────────
 
@@ -102,7 +103,13 @@ const TIENDA_DEFAULT = {
 };
 
 function TiendaSection() {
-  const [form, setForm] = useState(() => LS.get('sg_settings_tienda', TIENDA_DEFAULT));
+  const setSettings = useSettingsStore(s => s.setSettings);
+  const storeData   = useSettingsStore(s => ({
+    nombre: s.nombre, email: s.email, telefono: s.telefono,
+    direccion: s.direccion, moneda: s.moneda, zona: s.zona,
+  }));
+
+  const [form, setForm] = useState(storeData);
   const [saving, setSaving] = useState(false);
 
   const f = (k, v) => setForm(p => ({ ...p, [k]: v }));
@@ -110,9 +117,10 @@ function TiendaSection() {
   const handleSave = () => {
     setSaving(true);
     setTimeout(() => {
-      LS.set('sg_settings_tienda', form);
+      // Persiste en Zustand (que ya sincroniza con localStorage automáticamente)
+      setSettings(form);
       setSaving(false);
-      toast.success('✓ Información de la tienda guardada');
+      toast.success('✓ Información de la tienda guardada — moneda actualizada en toda la web');
     }, 400);
   };
 

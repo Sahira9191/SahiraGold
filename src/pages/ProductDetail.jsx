@@ -9,9 +9,9 @@ import useCartStore from '../store/cartStore'
 import useAuthStore from '../store/authStore'
 import ProductCard from '../components/product/ProductCard'
 import { MOCK_PRODUCTS, MOCK_REVIEWS } from '../lib/mockData'
+import useSettingsStore from '../store/settingsStore'
 
-const formatPrice = (n) =>
-  new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(n)
+const useFormatPrice = () => useSettingsStore(s => s.formatPrice)
 
 /* ─── Image Gallery ──────────────────── */
 function ImageGallery({ images, name }) {
@@ -174,6 +174,7 @@ export default function ProductDetail() {
   const { slug } = useParams()
   const product = MOCK_PRODUCTS.find(p => p.slug === slug) || MOCK_PRODUCTS[0]
   const related = MOCK_PRODUCTS.filter(p => p.id !== product.id && p.category?.id === product.category?.id).slice(0, 4)
+  const formatPrice = useFormatPrice()
 
   const [selectedVariant, setSelectedVariant] = useState(null)
   const [qty, setQty] = useState(1)

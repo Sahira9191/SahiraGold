@@ -3,12 +3,13 @@ import { X, ShoppingBag, Trash2, Plus, Minus, Tag, ArrowRight, Truck, CreditCard
 import { Link } from 'react-router-dom'
 import { useState } from 'react'
 import useCartStore from '../../store/cartStore'
+import useSettingsStore from '../../store/settingsStore'
 
-const formatPrice = (n) =>
-  new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(n)
+const useFormatPrice = () => useSettingsStore(s => s.formatPrice)
 
 /* ─── Financing preview strip ─────────────────── */
 function FinancingPreview({ total }) {
+  const formatPrice = useFormatPrice()
   const plans = [
     { months: 3,  label: '3 MSI',  rate: 0 },
     { months: 6,  label: '6 MSI',  rate: 0 },
@@ -16,7 +17,7 @@ function FinancingPreview({ total }) {
     { months: 18, label: '18 MSI', rate: 0.079 },
   ]
 
-  const bestPlan = plans[1] // 6 MSI shown by default
+  const bestPlan = plans[1]
   const monthly = bestPlan.rate === 0
     ? total / bestPlan.months
     : (total * (bestPlan.rate / 12)) / (1 - Math.pow(1 + bestPlan.rate / 12, -bestPlan.months))
@@ -59,6 +60,7 @@ export default function CartDrawer() {
   const applyCoupon = useCartStore((s) => s.applyCoupon)
   const removeCoupon = useCartStore((s) => s.removeCoupon)
   const coupon      = useCartStore((s) => s.coupon)
+  const formatPrice = useFormatPrice()
 
   const subtotal = items.reduce((sum, i) => sum + i.price * i.qty, 0)
   const discount = (() => {
