@@ -104,12 +104,19 @@ const TIENDA_DEFAULT = {
 
 function TiendaSection() {
   const setSettings = useSettingsStore(s => s.setSettings);
-  const storeData   = useSettingsStore(s => ({
-    nombre: s.nombre, email: s.email, telefono: s.telefono,
-    direccion: s.direccion, moneda: s.moneda, zona: s.zona,
-  }));
 
-  const [form, setForm] = useState(storeData);
+  // Leer valores primitivos individualmente — NUNCA con selector de objeto
+  const s_nombre    = useSettingsStore(s => s.nombre);
+  const s_email     = useSettingsStore(s => s.email);
+  const s_telefono  = useSettingsStore(s => s.telefono);
+  const s_direccion = useSettingsStore(s => s.direccion);
+  const s_moneda    = useSettingsStore(s => s.moneda);
+  const s_zona      = useSettingsStore(s => s.zona);
+
+  const [form, setForm] = useState({
+    nombre: s_nombre, email: s_email, telefono: s_telefono,
+    direccion: s_direccion, moneda: s_moneda, zona: s_zona,
+  });
   const [saving, setSaving] = useState(false);
 
   const f = (k, v) => setForm(p => ({ ...p, [k]: v }));
@@ -117,10 +124,9 @@ function TiendaSection() {
   const handleSave = () => {
     setSaving(true);
     setTimeout(() => {
-      // Persiste en Zustand (que ya sincroniza con localStorage automáticamente)
       setSettings(form);
       setSaving(false);
-      toast.success('✓ Información de la tienda guardada — moneda actualizada en toda la web');
+      toast.success('✓ Configuración guardada — moneda actualizada en toda la web');
     }, 400);
   };
 
