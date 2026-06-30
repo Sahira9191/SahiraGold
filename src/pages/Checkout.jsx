@@ -112,6 +112,7 @@ function StepIndicator({ current }) {
 
 /* ─── Order Summary sidebar ──────────────────── */
 function OrderSummary({ items, selectedPlan }) {
+  const formatPrice = useFormatPrice()
   const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0)
   const shipping = subtotal >= 5000 ? 0 : 299
   const total    = subtotal + shipping
@@ -184,6 +185,7 @@ function OrderSummary({ items, selectedPlan }) {
 
 /* ─── Financing selector ─────────────────────── */
 function FinancingSelector({ total, selectedPlan, onSelect }) {
+  const formatPrice = useFormatPrice()
   const [expanded, setExpanded] = useState(true)
 
   return (
