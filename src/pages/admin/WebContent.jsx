@@ -5,6 +5,7 @@ import {
   Check, X, Eye, Save, Layout, Star, MessageSquare, Megaphone, RefreshCw,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { lsGet, lsSet } from '../../lib/storage';
 
 // ─── Initial data ──────────────────────────────────────────────────────────────
 
@@ -203,7 +204,7 @@ function BannerCard({ banner, index, total, onMove, onToggle, onSave }) {
 }
 
 function HeroBannersSection() {
-  const [banners, setBanners] = useState(INITIAL_BANNERS);
+  const [banners, setBanners] = useState(() => lsGet('banners', INITIAL_BANNERS));
 
   const moveBanner = (index, dir) => {
     const next = [...banners];
@@ -221,7 +222,8 @@ function HeroBannersSection() {
   };
 
   const handleSaveAll = () => {
-    toast.success('Banners actualizados correctamente');
+    lsSet('banners', banners);
+    toast.success('✓ Banners guardados correctamente');
   };
 
   return (
@@ -342,10 +344,14 @@ function CollectionCard({ collection, onSave }) {
 }
 
 function CollectionsSection() {
-  const [collections, setCollections] = useState(INITIAL_COLLECTIONS);
+  const [collections, setCollections] = useState(() => lsGet('collections', INITIAL_COLLECTIONS));
 
   const saveCollection = (id, updated) => {
-    setCollections(prev => prev.map(c => c.id === id ? { ...c, ...updated } : c));
+    setCollections(prev => {
+      const next = prev.map(c => c.id === id ? { ...c, ...updated } : c);
+      lsSet('collections', next);
+      return next;
+    });
   };
 
   return (
@@ -395,10 +401,12 @@ function StarRating({ value, onChange }) {
 const EMPTY_TESTIMONIAL = { name: '', location: '', product: '', text: '', avatarUrl: '', rating: 5 };
 
 function TestimonialsSection() {
-  const [testimonials, setTestimonials] = useState(INITIAL_TESTIMONIALS);
+  const [testimonials, setTestimonials] = useState(() => lsGet('testimonials', INITIAL_TESTIMONIALS));
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState(null);
   const [form, setForm] = useState(EMPTY_TESTIMONIAL);
+
+  const persist = (next) => { lsSet('testimonials', next); return next; };
 
   const openCreate = () => {
     setEditId(null);
@@ -422,18 +430,18 @@ function TestimonialsSection() {
       return;
     }
     if (editId) {
-      setTestimonials(prev => prev.map(t => t.id === editId ? { ...t, ...form } : t));
-      toast.success('Testimonio actualizado');
+      setTestimonials(prev => persist(prev.map(t => t.id === editId ? { ...t, ...form } : t)));
+      toast.success('✓ Testimonio actualizado');
     } else {
-      setTestimonials(prev => [...prev, { id: `t${Date.now()}`, ...form }]);
-      toast.success('Testimonio agregado');
+      setTestimonials(prev => persist([...prev, { id: `t${Date.now()}`, ...form }]));
+      toast.success('✓ Testimonio agregado');
     }
     closeModal();
   };
 
   const handleDelete = id => {
-    setTestimonials(prev => prev.filter(t => t.id !== id));
-    toast.success('Testimonio eliminado');
+    setTestimonials(prev => persist(prev.filter(t => t.id !== id)));
+    toast.success('✓ Testimonio eliminado');
   };
 
   return (
@@ -599,12 +607,16 @@ function TestimonialsSection() {
 // ─── SECTION 4: Announcement Bar ──────────────────────────────────────────────
 
 function AnnouncementSection() {
-  const [text, setText] = useState('✦ Envío gratis en compras mayores a $2,000 MXN · Garantía de autenticidad certificada ✦');
-  const [colorPreset, setColorPreset] = useState('black');
+  const [text, setText] = useState(() => lsGet('announcement_text', '✦ Envío gratis en compras mayores a $2,000 MXN · Garantía de autenticidad certificada ✦'));
+  const [colorPreset, setColorPreset] = useState(() => lsGet('announcement_color', 'black'));
 
   const preset = ANNOUNCEMENT_PRESETS.find(p => p.value === colorPreset) ?? ANNOUNCEMENT_PRESETS[0];
 
-  const handleSave = () => toast.success('Barra de anuncio actualizada');
+  const handleSave = () => {
+    lsSet('announcement_text', text);
+    lsSet('announcement_color', colorPreset);
+    toast.success('✓ Barra de anuncio guardada');
+  };
 
   return (
     <div className="space-y-6">

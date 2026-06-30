@@ -1,177 +1,141 @@
 import { useState, useEffect, useCallback } from 'react'
-import supabase from '../lib/supabase'
 import { MOCK_PRODUCTS } from '../lib/mockData'
+import { lsGet, lsSet } from '../lib/storage'
 
-/* ─── Normaliza producto de Supabase al formato de la app ─── */
-const normalize = (p) => ({
-  ...p,
-  category: {
-    id:   p.category_slug || 'sin-categoria',
-    name: p.category_name || 'Sin categoría',
-  },
-  images: Array.isArray(p.images) ? p.images.filter(Boolean) : [],
-  rating: p.rating?.toString() || '5.0',
-  reviews_count: p.reviews_count || 0,
-})
+const LS_KEY = 'products'
 
-/* ─── Genera slug único ───────────────────────────────────── */
+/* ─── Helpers ─────────────────────────────────────────────────────────────── */
 const makeSlug = (name) =>
   name
     .toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')  // quita acentos
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9\s-]/g, '')
     .trim()
-    .replace(/\s+/g, '-')
-    + '-' + Date.now()
+    .replace(/\s+/g, '-') + '-' + Date.now()
 
-/* ─── Hook principal ──────────────────────────────────────── */
+function loadProducts() {
+  const saved = lsGet(LS_KEY, null)
+  if (saved && Array.isArray(saved) && saved.length > 0) return saved
+  return MOCK_PRODUCTS
+}
+
+function persistProducts(list) {
+  lsSet(LS_KEY, list)
+}
+
+/* ─── Hook principal ──────────────────────────────────────────────────────── */
 export function useProducts({ adminMode = false } = {}) {
-  const [products, setProducts]   = useState([])
-  const [loading,  setLoading]    = useState(true)
-  const [error,    setError]      = useState(null)
+  const [products, setProductsState] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const fetchProducts = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      let query = supabase
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: false })
+  const setProducts = useCallback((updater) => {
+    setProductsState(prev => {
+      const next = typeof updater === 'function' ? updater(prev) : updater
+      persistProducts(next)
+      return next
+    })
+  }, [])
 
-      if (!adminMode) {
-        query = query.eq('is_active', true)
-      }
-
-      const { data, error: qErr } = await query
-      if (qErr) throw qErr
-
-      if (data && data.length > 0) {
-        setProducts(data.map(normalize))
-      } else {
-        // Fallback a datos de muestra si la BD está vacía
-        const fallback = adminMode
-          ? MOCK_PRODUCTS
-          : MOCK_PRODUCTS.filter(p => p.is_active !== false)
-        setProducts(fallback)
-      }
-    } catch (err) {
-      console.error('[useProducts]', err.message)
-      setError(err.message)
-      setProducts(MOCK_PRODUCTS)
-    } finally {
-      setLoading(false)
-    }
+  // Carga inicial desde localStorage (o fallback a mock)
+  useEffect(() => {
+    const all = loadProducts()
+    const visible = adminMode ? all : all.filter(p => p.is_active !== false)
+    setProductsState(visible)
+    setLoading(false)
   }, [adminMode])
 
-  useEffect(() => { fetchProducts() }, [fetchProducts])
-
-  /* ── Guardar (crear o actualizar) ─────────────────────── */
-  const saveProduct = async (formData, existingProduct = null) => {
+  /* ── Guardar (crear o actualizar) ───────────────────────────────────────── */
+  const saveProduct = useCallback(async (formData, existingProduct = null) => {
     const isEdit = Boolean(existingProduct?.id)
 
     const payload = {
-      name:          formData.name.trim(),
+      name:          formData.name?.trim() || '',
       description:   formData.description || '',
-      price:         Number(formData.price),
+      price:         Number(formData.price) || 0,
       compare_price: formData.compare_price ? Number(formData.compare_price) : null,
-      stock:         Number(formData.stock),
+      stock:         Number(formData.stock) || 0,
       weight:        Number(formData.weight) || 0,
-      images:        formData.images.filter(Boolean),
+      images:        (formData.images || []).filter(Boolean),
       material:      formData.material || '',
+      category:      formData.category || { id: 'otros', name: 'Otros' },
       category_name: formData.category?.name || '',
-      category_slug: formData.category?.id   || '',
-      is_active:     formData.is_active  ?? true,
-      is_new:        formData.is_new     ?? false,
+      category_slug: formData.category?.id || '',
+      is_active:     formData.is_active ?? true,
+      is_new:        formData.is_new ?? false,
       is_bestseller: formData.is_bestseller ?? false,
       updated_at:    new Date().toISOString(),
     }
 
-    try {
-      if (isEdit) {
-        const { data, error } = await supabase
-          .from('products')
-          .update(payload)
-          .eq('id', existingProduct.id)
-          .select()
-          .single()
-        if (error) throw error
-        return normalize(data)
-      } else {
-        payload.slug = makeSlug(payload.name)
-        payload.rating = 0
-        payload.reviews_count = 0
-        const { data, error } = await supabase
-          .from('products')
-          .insert(payload)
-          .select()
-          .single()
-        if (error) throw error
-        return normalize(data)
+    if (isEdit) {
+      const updated = { ...existingProduct, ...payload }
+      setProducts(prev => {
+        const all = lsGet(LS_KEY, MOCK_PRODUCTS)
+        return all.map(p => p.id === existingProduct.id ? updated : p)
+      })
+      // Also update the local displayed list
+      setProductsState(prev => prev.map(p => p.id === existingProduct.id ? updated : p))
+      persistProducts(lsGet(LS_KEY, MOCK_PRODUCTS).map(p => p.id === existingProduct.id ? updated : p))
+      return updated
+    } else {
+      const newProduct = {
+        ...payload,
+        id: Date.now(),
+        slug: makeSlug(payload.name),
+        rating: '5.0',
+        reviews_count: 0,
+        created_at: new Date().toISOString(),
       }
-    } catch (err) {
-      throw new Error(err.message)
+      const all = lsGet(LS_KEY, MOCK_PRODUCTS)
+      const next = [newProduct, ...all]
+      persistProducts(next)
+      setProductsState(prev => adminMode ? [newProduct, ...prev] : (newProduct.is_active ? [newProduct, ...prev] : prev))
+      return newProduct
     }
-  }
+  }, [adminMode, setProducts])
 
-  /* ── Eliminar ─────────────────────────────────────────── */
-  const deleteProduct = async (id) => {
-    const { error } = await supabase.from('products').delete().eq('id', id)
-    if (error) throw new Error(error.message)
-  }
+  /* ── Eliminar ──────────────────────────────────────────────────────────── */
+  const deleteProduct = useCallback(async (id) => {
+    const all = lsGet(LS_KEY, MOCK_PRODUCTS)
+    const next = all.filter(p => p.id !== id)
+    persistProducts(next)
+    setProductsState(prev => prev.filter(p => p.id !== id))
+  }, [])
 
-  /* ── Actualizar stock inline ──────────────────────────── */
-  const updateStock = async (id, newStock) => {
-    const { error } = await supabase
-      .from('products')
-      .update({ stock: newStock, updated_at: new Date().toISOString() })
-      .eq('id', id)
-    if (error) throw new Error(error.message)
-  }
+  /* ── Actualizar stock inline ───────────────────────────────────────────── */
+  const updateStock = useCallback(async (id, newStock) => {
+    const all = lsGet(LS_KEY, MOCK_PRODUCTS)
+    const next = all.map(p => p.id === id ? { ...p, stock: newStock, updated_at: new Date().toISOString() } : p)
+    persistProducts(next)
+    setProductsState(prev => prev.map(p => p.id === id ? { ...p, stock: newStock } : p))
+  }, [])
 
   return {
     products,
     loading,
-    error,
+    error: null,
     setProducts,
-    refetch: fetchProducts,
+    refetch: () => {
+      const all = loadProducts()
+      const visible = adminMode ? all : all.filter(p => p.is_active !== false)
+      setProductsState(visible)
+    },
     saveProduct,
     deleteProduct,
     updateStock,
   }
 }
 
-/* ─── Hook para un solo producto por slug ─────────────────── */
+/* ─── Hook para un solo producto por slug ─────────────────────────────────── */
 export function useProductBySlug(slug) {
   const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!slug) return
-    async function fetch() {
-      setLoading(true)
-      try {
-        const { data } = await supabase
-          .from('products')
-          .select('*')
-          .eq('slug', slug)
-          .single()
-
-        if (data) {
-          setProduct(normalize(data))
-        } else {
-          // Fallback a mock
-          const mock = MOCK_PRODUCTS.find(p => p.slug === slug)
-          setProduct(mock || null)
-        }
-      } catch {
-        const mock = MOCK_PRODUCTS.find(p => p.slug === slug)
-        setProduct(mock || null)
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetch()
+    const all = loadProducts()
+    const found = all.find(p => p.slug === slug) || null
+    setProduct(found)
+    setLoading(false)
   }, [slug])
 
   return { product, loading }
