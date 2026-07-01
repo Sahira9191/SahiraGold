@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { lsGet, lsSet } from '../../lib/storage';
+import useWebContentStore from '../../store/webContentStore';
 
 // ─── Initial data ──────────────────────────────────────────────────────────────
 
@@ -204,7 +205,9 @@ function BannerCard({ banner, index, total, onMove, onToggle, onSave }) {
 }
 
 function HeroBannersSection() {
-  const [banners, setBanners] = useState(() => lsGet('banners', INITIAL_BANNERS));
+  const storeBanners   = useWebContentStore(s => s.banners);
+  const setBannersStore = useWebContentStore(s => s.setBanners);
+  const [banners, setBanners] = useState(storeBanners);
 
   const moveBanner = (index, dir) => {
     const next = [...banners];
@@ -222,8 +225,8 @@ function HeroBannersSection() {
   };
 
   const handleSaveAll = () => {
-    lsSet('banners', banners);
-    toast.success('✓ Banners guardados correctamente');
+    setBannersStore(banners);
+    toast.success('✓ Banners guardados — ya se ven en la tienda');
   };
 
   return (
@@ -344,12 +347,14 @@ function CollectionCard({ collection, onSave }) {
 }
 
 function CollectionsSection() {
-  const [collections, setCollections] = useState(() => lsGet('collections', INITIAL_COLLECTIONS));
+  const storeCollections  = useWebContentStore(s => s.collections);
+  const setCollectionsStore = useWebContentStore(s => s.setCollections);
+  const [collections, setCollections] = useState(storeCollections);
 
   const saveCollection = (id, updated) => {
     setCollections(prev => {
       const next = prev.map(c => c.id === id ? { ...c, ...updated } : c);
-      lsSet('collections', next);
+      setCollectionsStore(next);
       return next;
     });
   };
@@ -401,12 +406,14 @@ function StarRating({ value, onChange }) {
 const EMPTY_TESTIMONIAL = { name: '', location: '', product: '', text: '', avatarUrl: '', rating: 5 };
 
 function TestimonialsSection() {
-  const [testimonials, setTestimonials] = useState(() => lsGet('testimonials', INITIAL_TESTIMONIALS));
+  const storeTestimonials  = useWebContentStore(s => s.testimonials);
+  const setTestimonialsStore = useWebContentStore(s => s.setTestimonials);
+  const [testimonials, setTestimonials] = useState(storeTestimonials);
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState(null);
   const [form, setForm] = useState(EMPTY_TESTIMONIAL);
 
-  const persist = (next) => { lsSet('testimonials', next); return next; };
+  const persist = (next) => { setTestimonialsStore(next); return next; };
 
   const openCreate = () => {
     setEditId(null);
@@ -607,15 +614,16 @@ function TestimonialsSection() {
 // ─── SECTION 4: Announcement Bar ──────────────────────────────────────────────
 
 function AnnouncementSection() {
-  const [text, setText] = useState(() => lsGet('announcement_text', '✦ Envío gratis en compras mayores a $2,000 MXN · Garantía de autenticidad certificada ✦'));
-  const [colorPreset, setColorPreset] = useState(() => lsGet('announcement_color', 'black'));
+  const storeAnnouncement = useWebContentStore(s => s.announcement);
+  const setAnnouncementStore = useWebContentStore(s => s.setAnnouncement);
+  const [text, setText] = useState(storeAnnouncement.text);
+  const [colorPreset, setColorPreset] = useState(storeAnnouncement.color);
 
   const preset = ANNOUNCEMENT_PRESETS.find(p => p.value === colorPreset) ?? ANNOUNCEMENT_PRESETS[0];
 
   const handleSave = () => {
-    lsSet('announcement_text', text);
-    lsSet('announcement_color', colorPreset);
-    toast.success('✓ Barra de anuncio guardada');
+    setAnnouncementStore({ text, color: colorPreset });
+    toast.success('✓ Barra de anuncio guardada — ya se ve en la tienda');
   };
 
   return (

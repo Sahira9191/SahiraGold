@@ -8,8 +8,8 @@ import 'swiper/css/pagination'
 import 'swiper/css/navigation'
 import { ArrowRight, Play, Star, ChevronLeft, ChevronRight } from 'lucide-react'
 import ProductCard from '../components/product/ProductCard'
-import { FEATURED_COLLECTIONS, TESTIMONIALS } from '../lib/mockData'
 import { useProducts } from '../hooks/useProducts'
+import useWebContentStore from '../store/webContentStore'
 
 /* ─── Newsletter Popup ───────────────────────────── */
 function NewsletterPopup() {
@@ -104,76 +104,27 @@ function NewsletterPopup() {
   )
 }
 
-/* ─── Hero Slides data ───────────────────────────── */
-const HERO_SLIDES = [
-  {
-    id: 1,
-    image: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=1920&q=90',
-    stone: 'Diamante',
-    tag: '✦ Pureza Eterna ✦',
-    title: ['Brillos que', 'Conquistan', 'el Tiempo'],
-    subtitle: 'Diamantes certificados GIA engastados en oro 18K artesanal.',
-    overlay: 'from-obsidian-950/70 via-obsidian-950/30 to-obsidian-950/85',
-  },
-  {
-    id: 2,
-    image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=1920&q=90',
-    stone: 'Rubí',
-    tag: '✦ Pasión & Elegancia ✦',
-    title: ['El Fuego del', 'Rubí', 'en tus Manos'],
-    subtitle: 'Rubíes birmanos de primera calidad, color sangre de paloma.',
-    overlay: 'from-red-950/65 via-obsidian-950/35 to-obsidian-950/85',
-  },
-  {
-    id: 3,
-    image: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=1920&q=90',
-    stone: 'Esmeralda',
-    tag: '✦ Naturaleza Pura ✦',
-    title: ['El Verde', 'Profundo de la', 'Esmeralda'],
-    subtitle: 'Esmeraldas colombianas de talla rectangular, engaste en garra.',
-    overlay: 'from-emerald-950/65 via-obsidian-950/30 to-obsidian-950/85',
-  },
-  {
-    id: 4,
-    image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=1920&q=90',
-    stone: 'Perla',
-    tag: '✦ Gracia Natural ✦',
-    title: ['Perlas que', 'Cuentan una', 'Historia'],
-    subtitle: 'Perlas Tahití y Akoya seleccionadas a mano para cada pieza.',
-    overlay: 'from-obsidian-950/55 via-obsidian-950/20 to-obsidian-950/80',
-  },
-  {
-    id: 5,
-    image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=1920&q=90',
-    stone: 'Zafiro',
-    tag: '✦ Profundidad Real ✦',
-    title: ['Zafiros', 'Azules de la', 'Realeza'],
-    subtitle: 'Zafiros de Cachemira y Ceilán, el color del cielo en tus joyas.',
-    overlay: 'from-blue-950/65 via-obsidian-950/30 to-obsidian-950/85',
-  },
-  {
-    id: 6,
-    image: 'https://images.unsplash.com/photo-1573408301185-9519f94815b5?w=1920&q=90',
-    stone: 'Oro',
-    tag: '✦ Artesanía Ancestral ✦',
-    title: ['El Arte del', 'Oro en cada', 'Detalle'],
-    subtitle: 'Colecciones de oro 24K y 18K trabajadas a mano por maestros artesanos.',
-    overlay: 'from-obsidian-950/65 via-obsidian-950/30 to-obsidian-950/85',
-  },
-]
 
-/* ─── Hero Section ───────────────────────────────── */
+
+/* ─── Hero Section ──────────────────────────────── */
 function HeroSection() {
+  const allBanners = useWebContentStore(s => s.banners)
+  const HERO_SLIDES = allBanners.filter(b => b.active !== false).map(b => ({
+    ...b,
+    title: typeof b.title === 'string' ? b.title.split(' / ') : b.title,
+    overlay: b.overlay || 'from-obsidian-950/70 via-obsidian-950/30 to-obsidian-950/85',
+  }))
   const [current, setCurrent] = useState(0)
 
   useEffect(() => {
+    if (!HERO_SLIDES.length) return
     const t = setInterval(() => {
       setCurrent(c => (c + 1) % HERO_SLIDES.length)
     }, 5500)
     return () => clearInterval(t)
-  }, [])
+  }, [HERO_SLIDES.length])
 
-  const slide = HERO_SLIDES[current]
+  const slide = HERO_SLIDES[current] || HERO_SLIDES[0]
 
   return (
     <section className="relative h-screen min-h-[620px] flex items-center justify-center overflow-hidden">
@@ -323,6 +274,7 @@ function HeroSection() {
 
 /* ─── Collections Grid ────────────────────────────── */
 function CollectionsSection() {
+  const collections = useWebContentStore(s => s.collections)
   return (
     <section className="py-24 bg-cream-50 dark:bg-obsidian-950">
       <div className="container-luxury">
@@ -337,7 +289,7 @@ function CollectionsSection() {
 
         {/* Asymmetric grid */}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
-          {FEATURED_COLLECTIONS.map((col, i) => (
+          {collections.map((col, i) => (
             <motion.div
               key={col.id}
               initial={{ opacity: 0, y: 30 }}
@@ -512,6 +464,7 @@ function BestsellersSection() {
 
 /* ─── Testimonials ────────────────────────────────── */
 function TestimonialsSection() {
+  const testimonials = useWebContentStore(s => s.testimonials)
   return (
     <section className="py-24 bg-obsidian-950">
       <div className="container-luxury">
@@ -535,7 +488,7 @@ function TestimonialsSection() {
           pagination={{ clickable: true }}
           className="pb-12"
         >
-          {TESTIMONIALS.map((t) => (
+          {testimonials.map((t) => (
             <SwiperSlide key={t.id}>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
