@@ -2,11 +2,10 @@ import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Search, ShoppingBag, Heart, User, Menu, X, ChevronDown,
+  Search, ShoppingBag, Menu, X, ChevronDown,
   Sun, Moon, Phone, Mail
 } from 'lucide-react'
 import useCartStore from '../../store/cartStore'
-import useAuthStore from '../../store/authStore'
 
 const NAV_LINKS = [
   { label: 'Inicio', href: '/' },
@@ -41,9 +40,6 @@ export default function Navbar() {
   const items = useCartStore((s) => s.items)
   const openCart = useCartStore((s) => s.openCart)
   const itemCount = items.reduce((sum, i) => sum + i.qty, 0)
-
-  const user = useAuthStore((s) => s.user)
-  const wishlist = useAuthStore((s) => s.wishlist)
 
   useEffect(() => {
     const handler = () => setIsScrolled(window.scrollY > 20)
@@ -175,33 +171,6 @@ export default function Navbar() {
                 {dark ? <Sun size={18} /> : <Moon size={18} />}
               </button>
 
-              {/* Wishlist */}
-              <Link
-                to="/cuenta/wishlist"
-                className={`p-2.5 relative rounded-none transition-colors ${
-                  transparentBg ? 'text-white hover:text-gold-300' : 'text-obsidian-700 dark:text-cream-200 hover:text-gold-600'
-                }`}
-                aria-label="Lista de deseos"
-              >
-                <Heart size={20} />
-                {wishlist.length > 0 && (
-                  <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-gold-500 text-obsidian-950 text-[9px] font-bold flex items-center justify-center">
-                    {wishlist.length}
-                  </span>
-                )}
-              </Link>
-
-              {/* Account */}
-              <Link
-                to={user ? '/cuenta' : '/auth'}
-                className={`p-2.5 hidden sm:flex rounded-none transition-colors ${
-                  transparentBg ? 'text-white hover:text-gold-300' : 'text-obsidian-700 dark:text-cream-200 hover:text-gold-600'
-                }`}
-                aria-label="Mi cuenta"
-              >
-                <User size={20} />
-              </Link>
-
               {/* Cart */}
               <button
                 onClick={openCart}
@@ -330,9 +299,6 @@ export default function Navbar() {
               </nav>
 
               <div className="p-6 border-t border-cream-200 dark:border-obsidian-800 space-y-4">
-                <Link to={user ? '/cuenta' : '/auth'} className="flex items-center gap-3 text-sm text-obsidian-700 dark:text-cream-200 hover:text-gold-600">
-                  <User size={18} /> {user ? 'Mi Cuenta' : 'Iniciar Sesión'}
-                </Link>
                 <div className="flex items-center gap-3 text-sm text-obsidian-500">
                   <Phone size={16} /> +52 (55) 1234-5678
                 </div>

@@ -1,45 +1,23 @@
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { Mail, Lock, User, Eye, EyeOff, ArrowRight, Loader } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { Mail, Lock, Eye, EyeOff, ArrowRight, Loader, ShieldCheck } from 'lucide-react'
 import useAuthStore from '../store/authStore'
 import supabase from '../lib/supabase'
 import { toast } from 'sonner'
 
-const loginSchema = z.object({
-  email:    z.string().email('Email inválido'),
-  password: z.string().min(6, 'Mínimo 6 caracteres'),
-})
-
-const registerSchema = loginSchema.extend({
-  fullName:  z.string().min(2, 'Nombre requerido'),
-  confirmPassword: z.string().min(6),
-}).refine(d => d.password === d.confirmPassword, {
-  message: 'Las contraseñas no coinciden',
-  path: ['confirmPassword'],
-})
+const ADMIN_EMAIL    = 'admin@sahira.com'
+const ADMIN_PASSWORD = 'admin2024'
 
 export default function AuthPage() {
-  const [mode, setMode] = useState('login') // 'login' | 'register' | 'magic'
-  const [showPwd, setShowPwd] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const navigate = useNavigate()
-  const setSession = useAuthStore(s => s.setSession)
+  const [email,    setEmail]    = useState('')
+  const [password, setPassword] = useState('')
+  const [showPwd,  setShowPwd]  = useState(false)
+  const [loading,  setLoading]  = useState(false)
+  const navigate    = useNavigate()
+  const setSession  = useAuthStore(s => s.setSession)
 
-  const schema = mode === 'register' ? registerSchema : loginSchema
-  const { register, handleSubmit, formState: { errors }, reset } = useForm({
-    resolver: zodResolver(schema),
-  })
-
-  const changeMode = (m) => { setMode(m); reset() }
-
-  // ── Acceso admin local (sin Supabase) ──────────────────────────────────────
-  const ADMIN_EMAIL    = 'admin@sahira.com'
-  const ADMIN_PASSWORD = 'admin2024'
-
+  // ── Admin local bypass ──────────────────────────────────────────────────────
   const loginAsAdmin = () => {
     const fakeSession = {
       user: {
@@ -53,215 +31,129 @@ export default function AuthPage() {
     navigate('/admin')
   }
 
-  const onSubmit = async (data) => {
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!email || !password) { toast.error('Ingresa tu correo y contraseña'); return }
+
     setLoading(true)
     try {
-      if (mode === 'login') {
-        // ── Bypass local para admin ─────────────────────────────────────────
-        if (data.email === ADMIN_EMAIL && data.password === ADMIN_PASSWORD) {
-          loginAsAdmin()
-          return
-        }
-        // ── Login normal con Supabase ──────────────────────────────────────
-        const { data: auth, error } = await supabase.auth.signInWithPassword({
-          email: data.email, password: data.password,
-        })
-        if (error) throw error
-        setSession(auth.session)
-        toast.success('¡Bienvenida de nuevo!')
-        navigate('/cuenta')
-      } else if (mode === 'register') {
-        const { data: auth, error } = await supabase.auth.signUp({
-          email: data.email,
-          password: data.password,
-          options: { data: { full_name: data.fullName } },
-        })
-        if (error) throw error
-        setSession(auth.session)
-        toast.success('¡Cuenta creada exitosamente!')
-        navigate('/cuenta')
-      } else if (mode === 'magic') {
-        const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
-          redirectTo: `${window.location.origin}/auth?reset=true`,
-        })
-        if (error) throw error
-        toast.success('Revisa tu email para el enlace mágico')
+      // Bypass local para admin
+      if (email.trim() === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+        loginAsAdmin()
+        return
       }
+      // Intento con Supabase
+      const { data: auth, error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) throw error
+      setSession(auth.session)
+      toast.success('¡Bienvenido!')
+      navigate('/admin')
     } catch (err) {
-      toast.error(err.message || 'Ocurrió un error')
+      toast.error('Correo o contraseña incorrectos')
     } finally {
       setLoading(false)
     }
   }
 
-  const INPUT = 'input-luxury mt-1 pl-10'
-  const LABEL = 'block text-xs font-medium tracking-wide text-obsidian-700 dark:text-cream-300 uppercase'
-  const ERROR = 'text-red-500 text-xs mt-1'
-
   return (
-    <div className="min-h-screen bg-cream-50 dark:bg-obsidian-950 flex">
-      {/* Left panel — decorative */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-        <img
-          src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=1000&q=90"
-          alt="Joyería Sahira"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-obsidian-950/60" />
-        <div className="absolute inset-0 flex flex-col justify-center p-16">
-          <div className="text-gold-400 text-xs tracking-[0.5em] uppercase mb-4">Bienvenida/o</div>
-          <h2 className="font-display text-5xl text-white font-semibold mb-4 leading-tight">
-            Tu colección<br />
-            <span className="text-gold-gradient italic">te espera</span>
-          </h2>
-          <div className="w-12 h-px bg-gold-gradient mb-6" />
-          <p className="text-cream-200/70 text-lg leading-relaxed">
-            Accede a tu cuenta para gestionar tus pedidos, wishlist y colección de joyas exclusivas.
-          </p>
-        </div>
-      </div>
+    <div className="min-h-screen bg-obsidian-950 flex items-center justify-center p-4">
+      {/* Background subtle pattern */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-yellow-950/30 via-obsidian-950 to-obsidian-950 pointer-events-none" />
 
-      {/* Right panel — form */}
-      <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
-        <div className="w-full max-w-md">
-          {/* Logo */}
-          <Link to="/" className="flex flex-col items-center mb-10">
-            <span className="font-display text-3xl font-semibold text-gold-gradient">SAHIRA</span>
-            <span className="text-[10px] tracking-[0.4em] text-obsidian-400 uppercase">Gold Collection</span>
-          </Link>
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative w-full max-w-md"
+      >
+        {/* Card */}
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
 
-          {/* Mode tabs */}
-          <div className="flex border-b border-cream-200 dark:border-obsidian-800 mb-8">
-            {[
-              { id: 'login', label: 'Iniciar Sesión' },
-              { id: 'register', label: 'Crear Cuenta' },
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => changeMode(tab.id)}
-                className={`flex-1 pb-3 text-sm font-medium tracking-wide transition-colors
-                  ${mode === tab.id
-                    ? 'text-gold-600 border-b-2 border-gold-500 -mb-px'
-                    : 'text-obsidian-400 hover:text-obsidian-700'
-                  }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+          {/* Header */}
+          <div className="px-8 pt-8 pb-6 border-b border-slate-800 text-center">
+            <Link to="/" className="inline-flex flex-col items-center mb-5">
+              <span className="font-display text-3xl font-semibold text-gold-gradient">SAHIRA</span>
+              <span className="text-[10px] tracking-[0.4em] text-slate-400 uppercase">Gold Collection</span>
+            </Link>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-yellow-500/10 border border-yellow-500/20">
+              <ShieldCheck size={14} className="text-yellow-400" />
+              <span className="text-xs font-semibold text-yellow-400">Panel de Administración</span>
+            </div>
           </div>
 
-          <AnimatePresence mode="wait">
-            <motion.form
-              key={mode}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              onSubmit={handleSubmit(onSubmit)}
-              className="space-y-5"
-            >
-              {mode === 'register' && (
-                <div>
-                  <label className={LABEL}>Nombre completo</label>
-                  <div className="relative">
-                    <User size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-obsidian-400 mt-0.5" />
-                    <input {...register('fullName')} className={INPUT} placeholder="María García" />
-                  </div>
-                  {errors.fullName && <p className={ERROR}>{errors.fullName.message}</p>}
-                </div>
-              )}
-
-              <div>
-                <label className={LABEL}>Correo electrónico</label>
-                <div className="relative">
-                  <Mail size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-obsidian-400 mt-0.5" />
-                  <input {...register('email')} type="email" className={INPUT} placeholder="tu@correo.com" />
-                </div>
-                {errors.email && <p className={ERROR}>{errors.email.message}</p>}
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="px-8 py-7 space-y-5">
+            <div>
+              <label className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-2">
+                Correo electrónico
+              </label>
+              <div className="relative">
+                <Mail size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="admin@sahira.com"
+                  className="w-full bg-slate-800 border border-slate-700 text-slate-100 text-sm rounded-lg pl-9 pr-4 py-3 focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500/30 outline-none placeholder-slate-500 transition-colors"
+                />
               </div>
+            </div>
 
-              {mode !== 'magic' && (
-                <div>
-                  <label className={LABEL}>Contraseña</label>
-                  <div className="relative">
-                    <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-obsidian-400 mt-0.5" />
-                    <input
-                      {...register('password')}
-                      type={showPwd ? 'text' : 'password'}
-                      className={INPUT + ' pr-10'}
-                      placeholder="••••••••"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPwd(!showPwd)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-obsidian-400 hover:text-obsidian-700 mt-0.5"
-                    >
-                      {showPwd ? <EyeOff size={15} /> : <Eye size={15} />}
-                    </button>
-                  </div>
-                  {errors.password && <p className={ERROR}>{errors.password.message}</p>}
-                </div>
-              )}
+            <div>
+              <label className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-2">
+                Contraseña
+              </label>
+              <div className="relative">
+                <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                <input
+                  type={showPwd ? 'text' : 'password'}
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full bg-slate-800 border border-slate-700 text-slate-100 text-sm rounded-lg pl-9 pr-10 py-3 focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500/30 outline-none placeholder-slate-500 transition-colors"
+                />
+                <button type="button" onClick={() => setShowPwd(!showPwd)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors">
+                  {showPwd ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
+            </div>
 
-              {mode === 'register' && (
-                <div>
-                  <label className={LABEL}>Confirmar contraseña</label>
-                  <div className="relative">
-                    <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-obsidian-400 mt-0.5" />
-                    <input {...register('confirmPassword')} type="password" className={INPUT} placeholder="••••••••" />
-                  </div>
-                  {errors.confirmPassword && <p className={ERROR}>{errors.confirmPassword.message}</p>}
-                </div>
-              )}
-
-              {mode === 'login' && (
-                <div className="flex justify-end">
-                  <button type="button" onClick={() => changeMode('magic')} className="text-xs text-gold-600 hover:text-gold-700">
-                    ¿Olvidaste tu contraseña?
-                  </button>
-                </div>
-              )}
-
-              <button type="submit" disabled={loading} className="btn-gold w-full justify-center py-4">
-                {loading ? (
-                  <Loader size={18} className="animate-spin" />
-                ) : mode === 'login' ? (
-                  <>Iniciar Sesión <ArrowRight size={16} /></>
-                ) : mode === 'register' ? (
-                  <>Crear mi cuenta <ArrowRight size={16} /></>
-                ) : (
-                  'Enviar enlace de acceso'
-                )}
-              </button>
-
-            </motion.form>
-          </AnimatePresence>
-
-          {mode === 'magic' && (
-            <button onClick={() => changeMode('login')} className="btn-ghost w-full justify-center mt-4 text-sm">
-              Volver al inicio de sesión
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 py-3.5 bg-yellow-500 hover:bg-yellow-400 disabled:opacity-60 text-slate-950 font-bold text-sm rounded-lg transition-colors mt-2"
+            >
+              {loading
+                ? <><Loader size={16} className="animate-spin" /> Verificando...</>
+                : <><ArrowRight size={16} /> Acceder al panel</>
+              }
             </button>
-          )}
+          </form>
 
-          {/* Acceso rápido admin */}
-          {mode === 'login' && (
-            <div className="mt-6 pt-6 border-t border-obsidian-200/30 dark:border-obsidian-700">
-              <p className="text-center text-xs text-obsidian-400 dark:text-cream-500 mb-3">
-                Acceso administrador
-              </p>
+          {/* Quick admin access */}
+          <div className="px-8 pb-7">
+            <div className="border-t border-slate-800 pt-5">
+              <p className="text-center text-xs text-slate-600 mb-3">Acceso rápido</p>
               <button
                 onClick={loginAsAdmin}
-                className="w-full py-3 px-4 rounded-lg border border-yellow-500/40 bg-yellow-500/5 hover:bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 text-sm font-semibold transition-all flex items-center justify-center gap-2"
+                className="w-full py-3 px-4 rounded-lg border border-yellow-500/30 bg-yellow-500/5 hover:bg-yellow-500/10 text-yellow-500 text-sm font-semibold transition-all flex items-center justify-center gap-2"
               >
-                🔑 Entrar como Admin
+                🔑 Entrar como Admin (un clic)
               </button>
-              <p className="text-center text-[11px] text-obsidian-400/60 dark:text-cream-600/50 mt-2">
+              <p className="text-center text-[11px] text-slate-600 mt-2">
                 admin@sahira.com · admin2024
               </p>
             </div>
-          )}
+          </div>
         </div>
-      </div>
+
+        {/* Back to store */}
+        <div className="text-center mt-5">
+          <Link to="/" className="text-sm text-slate-500 hover:text-slate-300 transition-colors">
+            ← Volver a la tienda
+          </Link>
+        </div>
+      </motion.div>
     </div>
   )
 }
-

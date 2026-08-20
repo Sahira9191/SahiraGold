@@ -13,7 +13,6 @@ const Catalog       = lazy(() => import('./pages/Catalog'))
 const ProductDetail = lazy(() => import('./pages/ProductDetail'))
 const Checkout      = lazy(() => import('./pages/Checkout'))
 const Auth          = lazy(() => import('./pages/Auth'))
-const Account       = lazy(() => import('./pages/Account'))
 
 // Admin modules
 const AdminLayout   = lazy(() => import('./pages/admin/AdminLayout'))
@@ -68,13 +67,10 @@ export default function App() {
             <Routes>
               {/* Main layout routes */}
               <Route element={<Layout />}>
-                <Route path="/"                  element={<Home />} />
-                <Route path="/catalogo"          element={<Catalog />} />
-                <Route path="/producto/:slug"    element={<ProductDetail />} />
-                <Route path="/checkout"          element={<Checkout />} />
-                <Route path="/cuenta"            element={<Account />} />
-                <Route path="/cuenta/wishlist"   element={<Account />} />
-                <Route path="/cuenta/pedidos"    element={<Account />} />
+                <Route path="/"               element={<Home />} />
+                <Route path="/catalogo"       element={<Catalog />} />
+                <Route path="/producto/:slug" element={<ProductDetail />} />
+                <Route path="/checkout"       element={<Checkout />} />
               </Route>
 
               {/* Auth — standalone layout */}
