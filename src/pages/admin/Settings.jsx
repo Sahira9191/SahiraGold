@@ -223,7 +223,7 @@ function EnvioSection() {
 // ─── 3. Pagos ──────────────────────────────────────────────────────────────────
 
 const MSI_DEFAULT = { 3: true, 6: true, 12: true, 18: false };
-const METODOS_DEFAULT = { oxxo: true, paypal: true, tarjeta: true };
+const METODOS_DEFAULT = { paypal: true, tarjeta: true };
 
 function PagosSection() {
   const [msi, setMsi] = useState(() => LS.get('sg_settings_msi', MSI_DEFAULT));
@@ -242,7 +242,6 @@ function PagosSection() {
       <SectionCard title="Métodos de pago" description="Canales aceptados en la tienda.">
         <Toggle checked={metodos.tarjeta} onChange={() => toggleMetodo('tarjeta')} label="Tarjeta de crédito / débito" description="Visa, Mastercard, American Express" />
         <Toggle checked={metodos.paypal} onChange={() => toggleMetodo('paypal')} label="PayPal" description="Pago mediante cuenta PayPal" />
-        <Toggle checked={metodos.oxxo} onChange={() => toggleMetodo('oxxo')} label="OXXO Pay" description="Referencia de pago en tiendas OXXO" />
         <SaveButton onClick={handleSave} saving={saving} />
       </SectionCard>
 

@@ -229,7 +229,7 @@ export default function Footer() {
             {/* Payment methods */}
             <div className="flex items-center gap-2">
               <span className="text-xs text-obsidian-600 mr-2">Métodos de pago:</span>
-              {['VISA', 'MC', 'AMEX', 'PayPal', 'OXXO'].map((method) => (
+              {['VISA', 'MC', 'AMEX', 'PayPal'].map((method) => (
                 <span
                   key={method}
                   className="text-[9px] font-bold tracking-wider px-2 py-1 border border-obsidian-700 text-obsidian-400"
