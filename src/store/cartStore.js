@@ -57,12 +57,27 @@ const useCartStore = create(
       clearCart: () => set({ items: [], coupon: null, couponDiscount: 0 }),
 
       applyCoupon: (code, subtotal = 0) => {
-        // Read coupons saved by Admin panel
-        let coupons = []
-        try { coupons = JSON.parse(localStorage.getItem('sg_coupons') || '[]') } catch { /* ignore */ }
+        // Hardcoded built-in coupons that always work regardless of localStorage state
+        const BUILTIN = [
+          { id: 'cp1', code: 'SAHIRA10',   type: 'percent', value: 10,  minPurchase: 0,    maxUses: 9999, uses: 0, expires: '2099-12-31', active: true },
+          { id: 'cp2', code: 'BIENVENIDA', type: 'percent', value: 15,  minPurchase: 0,    maxUses: 9999, uses: 0, expires: '2099-12-31', active: true },
+          { id: 'cp3', code: 'SAHIRA500',  type: 'fixed',   value: 500, minPurchase: 2000, maxUses: 9999, uses: 0, expires: '2099-12-31', active: true },
+          { id: 'cp4', code: 'VIP2026',    type: 'percent', value: 20,  minPurchase: 5000, maxUses: 9999, uses: 0, expires: '2099-12-31', active: true },
+        ]
 
-        const found = coupons.find(
-          (c) => c.code.toUpperCase() === code.toUpperCase()
+        // Also read admin-created coupons from localStorage
+        let stored = []
+        try { stored = JSON.parse(localStorage.getItem('sg_coupons') || '[]') } catch { /* ignore */ }
+
+        // Merge: localStorage coupons override built-ins by code
+        const storedCodes = new Set(stored.map((c) => c.code.toUpperCase()))
+        const merged = [
+          ...stored,
+          ...BUILTIN.filter((c) => !storedCodes.has(c.code.toUpperCase())),
+        ]
+
+        const found = merged.find(
+          (c) => c.code.toUpperCase() === code.trim().toUpperCase()
         )
 
         if (!found) return { success: false, error: 'Cupón no encontrado' }
@@ -74,9 +89,9 @@ const useCartStore = create(
           return { success: false, error: `Compra mínima de ${fmt(found.minPurchase)} requerida` }
         }
 
-        // Increment uses count
+        // Increment uses count in localStorage (only for admin-created ones)
         try {
-          const updated = coupons.map((c) =>
+          const updated = stored.map((c) =>
             c.id === found.id ? { ...c, uses: c.uses + 1 } : c
           )
           localStorage.setItem('sg_coupons', JSON.stringify(updated))
@@ -86,6 +101,7 @@ const useCartStore = create(
         set({ coupon })
         return { success: true, coupon }
       },
+
 
       removeCoupon: () => set({ coupon: null }),
 
