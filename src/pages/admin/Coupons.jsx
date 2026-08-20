@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Tag, Plus, Edit, Trash2, Copy, X, Check, Calendar, Percent, DollarSign,
@@ -36,6 +36,22 @@ const EMPTY_FORM = {
   expires: '',
   active: true,
 };
+
+// ─── localStorage helpers ─────────────────────────────────────────────────────
+
+const STORAGE_KEY = 'sg_coupons';
+
+function loadCoupons() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch { /* ignore */ }
+  return INITIAL_COUPONS;
+}
+
+function saveCoupons(list) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch { /* ignore */ }
+}
 
 // ─── CouponCard ────────────────────────────────────────────────────────────────
 
@@ -382,9 +398,19 @@ function StatsBar({ coupons }) {
 // ─── Main Component ────────────────────────────────────────────────────────────
 
 export default function Coupons() {
-  const [coupons, setCoupons] = useState(INITIAL_COUPONS);
+  const [coupons, setCoupons] = useState(loadCoupons);
   const [showModal, setShowModal] = useState(false);
   const [editCoupon, setEditCoupon] = useState(null);
+
+  // Persist whenever coupons change
+  useEffect(() => { saveCoupons(coupons); }, [coupons]);
+
+  // Escape key closes modal
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') closeModal(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
 
   const openCreate = () => { setEditCoupon(null); setShowModal(true); };
   const openEdit = c => { setEditCoupon(c); setShowModal(true); };

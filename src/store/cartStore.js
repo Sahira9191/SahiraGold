@@ -56,18 +56,35 @@ const useCartStore = create(
 
       clearCart: () => set({ items: [], coupon: null, couponDiscount: 0 }),
 
-      applyCoupon: (code) => {
-        const VALID_COUPONS = {
-          SAHIRA10: { type: 'percent', value: 10 },
-          BIENVENIDA: { type: 'percent', value: 15 },
-          SAHIRA500: { type: 'fixed', value: 500 },
+      applyCoupon: (code, subtotal = 0) => {
+        // Read coupons saved by Admin panel
+        let coupons = []
+        try { coupons = JSON.parse(localStorage.getItem('sg_coupons') || '[]') } catch { /* ignore */ }
+
+        const found = coupons.find(
+          (c) => c.code.toUpperCase() === code.toUpperCase()
+        )
+
+        if (!found) return { success: false, error: 'Cupón no encontrado' }
+        if (!found.active) return { success: false, error: 'Este cupón no está activo' }
+        if (new Date(found.expires) < new Date()) return { success: false, error: 'Este cupón ha expirado' }
+        if (found.uses >= found.maxUses) return { success: false, error: 'Este cupón ya fue agotado' }
+        if (found.minPurchase > 0 && subtotal < found.minPurchase) {
+          const fmt = (n) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(n)
+          return { success: false, error: `Compra mínima de ${fmt(found.minPurchase)} requerida` }
         }
-        const coupon = VALID_COUPONS[code.toUpperCase()]
-        if (coupon) {
-          set({ coupon: { code: code.toUpperCase(), ...coupon } })
-          return { success: true, coupon }
-        }
-        return { success: false, error: 'Cupón inválido o expirado' }
+
+        // Increment uses count
+        try {
+          const updated = coupons.map((c) =>
+            c.id === found.id ? { ...c, uses: c.uses + 1 } : c
+          )
+          localStorage.setItem('sg_coupons', JSON.stringify(updated))
+        } catch { /* ignore */ }
+
+        const coupon = { code: found.code.toUpperCase(), type: found.type, value: found.value }
+        set({ coupon })
+        return { success: true, coupon }
       },
 
       removeCoupon: () => set({ coupon: null }),

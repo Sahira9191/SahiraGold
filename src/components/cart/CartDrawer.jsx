@@ -80,7 +80,7 @@ export default function CartDrawer() {
     e.preventDefault()
     setCouponError('')
     setCouponSuccess('')
-    const result = applyCoupon(couponCode)
+    const result = applyCoupon(couponCode, subtotal)
     if (result.success) {
       setCouponSuccess(`¡Cupón aplicado! ${result.coupon.type === 'percent' ? result.coupon.value + '%' : formatPrice(result.coupon.value)} de descuento`)
       setCouponCode('')
