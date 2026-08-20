@@ -167,7 +167,6 @@ export default function Footer() {
                   <span>{direccion}</span>
                 </div>
               )}
-              </div>
             </div>
           </div>
 
