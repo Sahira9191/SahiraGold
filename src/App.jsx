@@ -7,6 +7,18 @@ import Layout from './components/layout/Layout'
 import supabase from './lib/supabase'
 import useAuthStore from './store/authStore'
 
+// ─── Seed default coupons if localStorage is empty ──────────────────────────────────
+;(function initCoupons() {
+  if (localStorage.getItem('sg_coupons')) return
+  const seed = [
+    { id: 'cp1', code: 'SAHIRA10',   type: 'percent', value: 10,  minPurchase: 0,    maxUses: 100, uses: 0, expires: '2027-12-31', active: true },
+    { id: 'cp2', code: 'BIENVENIDA', type: 'percent', value: 15,  minPurchase: 0,    maxUses: 500, uses: 0, expires: '2027-12-31', active: true },
+    { id: 'cp3', code: 'SAHIRA500',  type: 'fixed',   value: 500, minPurchase: 2000, maxUses: 50,  uses: 0, expires: '2027-12-31', active: true },
+    { id: 'cp4', code: 'VIP2026',    type: 'percent', value: 20,  minPurchase: 5000, maxUses: 30,  uses: 0, expires: '2027-12-31', active: true },
+  ]
+  try { localStorage.setItem('sg_coupons', JSON.stringify(seed)) } catch { /* ignore */ }
+})()
+
 // Lazy-loaded pages for code splitting
 const Home          = lazy(() => import('./pages/Home'))
 const Catalog       = lazy(() => import('./pages/Catalog'))
