@@ -19,6 +19,21 @@ import useAuthStore from './store/authStore'
   try { localStorage.setItem('sg_coupons', JSON.stringify(seed)) } catch { /* ignore */ }
 })()
 
+// ─── Seed default orders so Dashboard always has data ───────────────────────────────
+;(function initOrders() {
+  if (localStorage.getItem('sg_orders')) return
+  const seed = [
+    { id: 'SGC-51029', customer: { name: 'Sofía Martínez', email: 'sofia@email.com', phone: '+52 55 1234-5678' }, date: '2026-08-18', items: [{ name: 'Anillo Eternidad', qty: 1, price: 2800 }, { name: 'Aretes Pavé', qty: 2, price: 1200 }], total: 5200, status: 'Procesando', address: 'Av. Insurgentes Sur 1234, CDMX', tracking: '', notes: '' },
+    { id: 'SGC-48291', customer: { name: 'Ana Pérez', email: 'ana@email.com', phone: '+52 33 9876-5432' }, date: '2026-08-15', items: [{ name: 'Collar Perla Tahití', qty: 1, price: 4800 }], total: 4800, status: 'Entregado', address: 'Calle Madero 567, Guadalajara', tracking: 'FX9281047MX', notes: '' },
+    { id: 'SGC-39145', customer: { name: 'Carmen Villanueva', email: 'carmen@email.com', phone: '+52 81 5555-1234' }, date: '2026-08-10', items: [{ name: 'Pulsera Tennis', qty: 1, price: 12500 }], total: 12500, status: 'Entregado', address: 'Av. Garza Sada 2501, Monterrey', tracking: 'FX1928374MX', notes: '' },
+    { id: 'SGC-55821', customer: { name: 'Isabella Fuentes', email: 'isa@email.com', phone: '+52 998 123-4567' }, date: '2026-08-19', items: [{ name: 'Aretes Rubí Lágrima', qty: 1, price: 1900 }], total: 1900, status: 'En camino', address: 'Blvd. Kukulcán Km 12, Cancún', tracking: 'FX7654321MX', notes: '' },
+    { id: 'SGC-47103', customer: { name: 'Gabriela Moreno', email: 'gaby@email.com', phone: '+52 55 8888-9999' }, date: '2026-08-12', items: [{ name: 'Anillo Solitario', qty: 1, price: 6700 }], total: 6700, status: 'Entregado', address: 'Polanco, CDMX', tracking: 'FX3344556MX', notes: '' },
+    { id: 'SGC-61002', customer: { name: 'Mariana Ríos', email: 'mari@email.com', phone: '+52 442 333-4444' }, date: '2026-08-20', items: [{ name: 'Collar Gargantilla', qty: 1, price: 3400 }], total: 3400, status: 'Procesando', address: 'Centro Histórico, Querétaro', tracking: '', notes: '' },
+  ]
+  try { localStorage.setItem('sg_orders', JSON.stringify(seed)) } catch { /* ignore */ }
+})()
+
+
 // Lazy-loaded pages for code splitting
 const Home          = lazy(() => import('./pages/Home'))
 const Catalog       = lazy(() => import('./pages/Catalog'))
