@@ -52,13 +52,14 @@ export default function ProductCard({ product, index = 0 }) {
           {!imgLoaded && <div className="absolute inset-0 skeleton" />}
 
           <img
-            src={hovered && product.images?.[1] ? product.images[1] : product.images?.[0]}
+            src={hovered && product.images?.[1] ? product.images[1] : (product.images?.[0] || 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=600&q=80')}
             alt={product.name}
             className={`w-full h-full object-cover transition-all duration-700
               ${hovered ? 'scale-110' : 'scale-100'}
               ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
             loading="lazy"
             onLoad={() => setImgLoaded(true)}
+            onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=600&q=80'; setImgLoaded(true); }}
           />
 
           {/* Overlay actions */}
@@ -107,6 +108,7 @@ export default function ProductCard({ product, index = 0 }) {
               src="/logo-clean.png"
               alt="Sahira Gold"
               className="h-5 object-contain opacity-50 drop-shadow-sm"
+              onError={(e) => { e.currentTarget.style.display = 'none' }}
             />
           </div>
         </div>

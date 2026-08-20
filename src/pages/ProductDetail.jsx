@@ -12,9 +12,11 @@ import { MOCK_PRODUCTS, MOCK_REVIEWS } from '../lib/mockData'
 import useSettingsStore from '../store/settingsStore'
 
 const useFormatPrice = () => useSettingsStore(s => s.formatPrice)
+const FALLBACK_IMG = 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=600&q=80'
 
 /* ─── Image Gallery ──────────────────── */
-function ImageGallery({ images, name }) {
+function ImageGallery({ images: rawImages, name }) {
+  const images = rawImages?.length ? rawImages : [FALLBACK_IMG]
   const [current, setCurrent] = useState(0)
   const [zoomed, setZoomed] = useState(false)
   const [mousePos, setMousePos] = useState({ x: 50, y: 50 })
@@ -37,9 +39,10 @@ function ImageGallery({ images, name }) {
         onMouseMove={handleMouseMove}
       >
         <img
-          src={images[current]}
+          src={images[current] || FALLBACK_IMG}
           alt={`${name} — imagen ${current + 1}`}
           className="w-full h-full object-cover transition-all duration-500"
+          onError={(e) => { e.target.src = FALLBACK_IMG }}
           style={zoomed ? {
             transform: 'scale(2)',
             transformOrigin: `${mousePos.x}% ${mousePos.y}%`,
@@ -80,7 +83,7 @@ function ImageGallery({ images, name }) {
             className={`flex-shrink-0 w-20 h-20 overflow-hidden border-2 transition-all
               ${current === i ? 'border-gold-500' : 'border-cream-200 dark:border-obsidian-700 hover:border-gold-300'}`}
           >
-            <img src={img} alt="" className="w-full h-full object-cover" />
+            <img src={img || FALLBACK_IMG} alt="" className="w-full h-full object-cover" onError={(e) => { e.target.src = FALLBACK_IMG }} />
           </button>
         ))}
       </div>
