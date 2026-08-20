@@ -3,6 +3,7 @@ import { useState } from 'react'
 import {
   MapPin, Phone, Mail, ArrowRight, Shield, Truck, RefreshCw, Award
 } from 'lucide-react'
+import useSettingsStore from '../../store/settingsStore'
 
 const FOOTER_LINKS = {
   'Colecciones': [
@@ -80,6 +81,7 @@ const TRUST_BADGES = [
 export default function Footer() {
   const [email, setEmail] = useState('')
   const [subscribed, setSubscribed] = useState(false)
+  const { telefono, email: contactEmail, direccion, nombre } = useSettingsStore()
 
   const handleSubscribe = (e) => {
     e.preventDefault()
@@ -147,17 +149,24 @@ export default function Footer() {
 
             {/* Contact */}
             <div className="space-y-3 text-sm text-obsidian-400">
-              <div className="flex items-center gap-2">
-                <Phone size={14} className="text-gold-500 flex-shrink-0" />
-                <span>+52 (55) 1234-5678</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Mail size={14} className="text-gold-500 flex-shrink-0" />
-                <span>hola@sahiragoldcollection.com</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <MapPin size={14} className="text-gold-500 flex-shrink-0 mt-0.5" />
-                <span>Av. Presidente Masaryk 360, Polanco, CDMX</span>
+              {telefono && (
+                <div className="flex items-center gap-2">
+                  <Phone size={14} className="text-gold-500 flex-shrink-0" />
+                  <span>{telefono}</span>
+                </div>
+              )}
+              {contactEmail && (
+                <div className="flex items-center gap-2">
+                  <Mail size={14} className="text-gold-500 flex-shrink-0" />
+                  <span>{contactEmail}</span>
+                </div>
+              )}
+              {direccion && (
+                <div className="flex items-start gap-2">
+                  <MapPin size={14} className="text-gold-500 flex-shrink-0 mt-0.5" />
+                  <span>{direccion}</span>
+                </div>
+              )}
               </div>
             </div>
           </div>

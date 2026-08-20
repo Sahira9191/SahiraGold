@@ -11,8 +11,8 @@ function save(data) {
 
 const DEFAULT = {
   nombre:    'Sahira Gold Collection',
-  email:     'hola@sahiragoldcollection.com',
-  telefono:  '+52 55 1234 5678',
+  email:     'hello@sahiragoldcollection.com',
+  telefono:  '',
   direccion: '',
   moneda:    'USD',
   zona:      'America/New_York',
