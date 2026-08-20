@@ -36,10 +36,33 @@ export default function AuthPage() {
 
   const changeMode = (m) => { setMode(m); reset() }
 
+  // ── Acceso admin local (sin Supabase) ──────────────────────────────────────
+  const ADMIN_EMAIL    = 'admin@sahira.com'
+  const ADMIN_PASSWORD = 'admin2024'
+
+  const loginAsAdmin = () => {
+    const fakeSession = {
+      user: {
+        id: 'local-admin',
+        email: ADMIN_EMAIL,
+        user_metadata: { role: 'admin', full_name: 'Admin Sahira' },
+      },
+    }
+    setSession(fakeSession)
+    toast.success('¡Bienvenido, Admin!')
+    navigate('/admin')
+  }
+
   const onSubmit = async (data) => {
     setLoading(true)
     try {
       if (mode === 'login') {
+        // ── Bypass local para admin ─────────────────────────────────────────
+        if (data.email === ADMIN_EMAIL && data.password === ADMIN_PASSWORD) {
+          loginAsAdmin()
+          return
+        }
+        // ── Login normal con Supabase ──────────────────────────────────────
         const { data: auth, error } = await supabase.auth.signInWithPassword({
           email: data.email, password: data.password,
         })
@@ -218,8 +241,27 @@ export default function AuthPage() {
               Volver al inicio de sesión
             </button>
           )}
+
+          {/* Acceso rápido admin */}
+          {mode === 'login' && (
+            <div className="mt-6 pt-6 border-t border-obsidian-200/30 dark:border-obsidian-700">
+              <p className="text-center text-xs text-obsidian-400 dark:text-cream-500 mb-3">
+                Acceso administrador
+              </p>
+              <button
+                onClick={loginAsAdmin}
+                className="w-full py-3 px-4 rounded-lg border border-yellow-500/40 bg-yellow-500/5 hover:bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 text-sm font-semibold transition-all flex items-center justify-center gap-2"
+              >
+                🔑 Entrar como Admin
+              </button>
+              <p className="text-center text-[11px] text-obsidian-400/60 dark:text-cream-600/50 mt-2">
+                admin@sahira.com · admin2024
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
   )
 }
+
