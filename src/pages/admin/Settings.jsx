@@ -149,7 +149,7 @@ function TiendaSection() {
               onChange={e => f('moneda', e.target.value)}
               className="w-full bg-slate-700 border border-slate-600 text-slate-100 text-sm rounded-lg px-3 py-2.5 focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500/30 outline-none"
             >
-              <option value="USD">MXN — Peso Mexicano</option>
+              <option value="MXN">MXN — Peso Mexicano</option>
               <option value="USD">USD — Dólar Americano</option>
             </select>
           </Field>
@@ -213,7 +213,7 @@ function EnvioSection() {
             <Input type="number" min={1} max={30} value={form.diasEntrega} onChange={e => f('diasEntrega', parseInt(e.target.value) || 1)} />
           </Field>
         </div>
-        <Toggle checked={form.envioGratisActivo} onChange={v => f('envioGratisActivo', v)} label="Envío gratis activado" description={`Ofrecer envío gratis en compras mayores a $${form.umbralGratis.toLocaleString('en-US')} MXN`} />
+        <Toggle checked={form.envioGratisActivo} onChange={v => f('envioGratisActivo', v)} label="Envío gratis activado" description={`Ofrecer envío gratis en compras mayores a $${form.umbralGratis.toLocaleString('en-US')} USD`} />
         <SaveButton onClick={handleSave} saving={saving} />
       </SectionCard>
     </div>
