@@ -75,12 +75,16 @@ export default function CartDrawer() {
   const [couponCode, setCouponCode]       = useState('')
   const [couponError, setCouponError]     = useState('')
   const [couponSuccess, setCouponSuccess] = useState('')
+  const [applyingCoupon, setApplying]     = useState(false)
 
-  const handleCoupon = (e) => {
+  const handleCoupon = async (e) => {
     e.preventDefault()
+    if (!couponCode.trim()) return
     setCouponError('')
     setCouponSuccess('')
-    const result = applyCoupon(couponCode, subtotal)
+    setApplying(true)
+    const result = await applyCoupon(couponCode, subtotal)
+    setApplying(false)
     if (result.success) {
       setCouponSuccess(`¡Cupón aplicado! ${result.coupon.type === 'percent' ? result.coupon.value + '%' : formatPrice(result.coupon.value)} de descuento`)
       setCouponCode('')
@@ -269,7 +273,8 @@ export default function CartDrawer() {
                           className="input-luxury pl-9 py-2.5 text-xs"
                         />
                       </div>
-                      <button type="submit" className="btn-outline-gold px-4 py-2.5 text-xs">
+                      <button type="submit" disabled={applyingCoupon} className="btn-outline-gold px-4 py-2.5 text-xs flex items-center gap-1">
+                        {applyingCoupon ? <span className="inline-block w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" /> : null}
                         Aplicar
                       </button>
                     </form>
