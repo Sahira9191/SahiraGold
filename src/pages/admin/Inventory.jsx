@@ -13,7 +13,7 @@ const MATERIALS = ['Oro 24K', 'Oro 18K', 'Oro 14K', 'Oro Blanco', 'Oro Rosa', 'P
 const PAGE_SIZE = 15
 
 const formatPrice = (n) =>
-  new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(n)
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
 
 // ─── Toggle Switch ────────────────────────────────────────────────────────────
 function Toggle({ checked, onChange, label }) {
@@ -292,7 +292,7 @@ function ProductModal({ product, onClose, onSave }) {
           {/* Price + Compare Price */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className={labelCls}>Precio (MXN) *</label>
+              <label className={labelCls}>Precio (USD) *</label>
               <input
                 type="number"
                 min="0"
@@ -303,7 +303,7 @@ function ProductModal({ product, onClose, onSave }) {
               />
             </div>
             <div>
-              <label className={labelCls}>Precio tachado (MXN)</label>
+              <label className={labelCls}>Precio tachado (USD) (USD)</label>
               <input
                 type="number"
                 min="0"
@@ -683,7 +683,7 @@ export default function Inventory() {
   // ── CSV Export ───────────────────────────────────────────────────────────
   const handleExportCSV = () => {
     const headers = [
-      'ID', 'Nombre', 'Categoría', 'Material', 'Precio', 'Precio Tachado',
+      'ID', 'Nombre', 'Categoría', 'Material', 'Precio', 'Precio tachado (USD)',
       'Stock', 'Peso', 'Activo', 'Nuevo', 'Más Vendido', 'Creado',
     ]
     const rows = products.map((p) => [
@@ -698,7 +698,7 @@ export default function Inventory() {
       p.is_active ? 'Sí' : 'No',
       p.is_new ? 'Sí' : 'No',
       p.is_bestseller ? 'Sí' : 'No',
-      new Date(p.created_at).toLocaleDateString('es-MX'),
+      new Date(p.created_at).toLocaleDateString('en-US'),
     ])
     const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n')
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })

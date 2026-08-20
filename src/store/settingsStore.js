@@ -14,7 +14,7 @@ const DEFAULT = {
   email:     'hola@sahiragoldcollection.com',
   telefono:  '+52 55 1234 5678',
   direccion: '',
-  moneda:    'MXN',
+  moneda:    'USD',
   zona:      'America/New_York',
 }
 
@@ -30,7 +30,7 @@ const useSettingsStore = create((set, get) => ({
   formatPrice: (amount) => {
     const { moneda } = get()
     return new Intl.NumberFormat(
-      moneda === 'USD' ? 'en-US' : 'es-MX',
+      moneda === 'USD' ? 'en-US' : 'en-US',
       { style: 'currency', currency: moneda, maximumFractionDigits: 0 }
     ).format(amount)
   },

@@ -9,12 +9,12 @@ import {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const formatPrice = (n) =>
-  new Intl.NumberFormat('es-MX', {
-    style: 'currency', currency: 'MXN', maximumFractionDigits: 0,
+  new Intl.NumberFormat('en-US', {
+    style: 'currency', currency: 'USD', maximumFractionDigits: 0,
   }).format(n);
 
 const formatDate = (dateStr) =>
-  new Date(dateStr).toLocaleDateString('es-MX', {
+  new Date(dateStr).toLocaleDateString('en-US', {
     day: '2-digit', month: 'short', year: 'numeric',
   });
 

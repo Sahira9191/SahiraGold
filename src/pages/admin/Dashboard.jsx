@@ -9,7 +9,7 @@ import { MOCK_PRODUCTS } from '../../lib/mockData'
 
 /* ─── Helpers ────────────────────────────────────────────────────────────── */
 const fmt = (n) =>
-  new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(n)
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
 
 const STATUS_STYLES = {
   Entregado:   { badge: 'bg-emerald-900/30 text-emerald-400', dot: 'bg-emerald-400' },
@@ -68,7 +68,7 @@ function SalesBarChart({ orders }) {
       const d = new Date(today)
       d.setDate(today.getDate() - (6 - i))
       return {
-        label: d.toLocaleDateString('es-MX', { weekday: 'short' }).replace('.', ''),
+        label: d.toLocaleDateString('en-US', { weekday: 'short' }).replace('.', ''),
         dateStr: d.toISOString().slice(0, 10),
         total: 0,
       }

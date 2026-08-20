@@ -35,8 +35,8 @@ const useCartStore = create(
       clearCart: () => set({ items: [], coupon: null, couponDiscount: 0 }),
 
       applyCoupon: async (code, subtotal = 0) => {
-        const fmtMXN = (n) =>
-          new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(n)
+        const fmtUSD = (n) =>
+          new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
 
         let found = null
 
@@ -78,7 +78,7 @@ const useCartStore = create(
         if (new Date(found.expires) < new Date()) return { success: false, error: 'Este cupón ha expirado' }
         if (found.uses >= found.maxUses)          return { success: false, error: 'Este cupón ya fue agotado' }
         if (found.minPurchase > 0 && subtotal < found.minPurchase)
-          return { success: false, error: `Compra mínima de ${fmtMXN(found.minPurchase)} requerida` }
+          return { success: false, error: `Compra mínima de ${fmtUSD(found.minPurchase)} requerida` }
 
         // Increment uses in Supabase
         try { await supabase.from('coupons').update({ uses: found.uses + 1 }).eq('id', found.id) } catch { /* ignore */ }

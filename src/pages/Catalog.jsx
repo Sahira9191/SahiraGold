@@ -127,8 +127,8 @@ function FilterSidebar({ onClose }) {
             className="w-full accent-gold-500"
           />
           <div className="flex justify-between text-xs text-obsidian-500">
-            <span>${priceRange[0].toLocaleString('es-MX')}</span>
-            <span>${priceRange[1].toLocaleString('es-MX')}</span>
+            <span>${priceRange[0].toLocaleString('en-US')}</span>
+            <span>${priceRange[1].toLocaleString('en-US')}</span>
           </div>
         </div>
       </div>

@@ -9,7 +9,7 @@ import supabase from '../../lib/supabase';
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
 const fmt = n =>
-  new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(n);
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
 
 const isExpired = dateStr => new Date(dateStr) < new Date();
 
@@ -124,7 +124,7 @@ function CouponCard({ coupon, onEdit, onDelete, onToggle }) {
         {/* Expiry */}
         <div className="flex items-center gap-2 text-xs text-slate-400">
           <Calendar size={13} />
-          <span>Vence el {new Date(coupon.expires + 'T00:00:00').toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+          <span>Vence el {new Date(coupon.expires + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
         </div>
 
         {/* Footer */}
@@ -238,7 +238,7 @@ function CouponModal({ editCoupon, onClose, onSubmit, saving }) {
           {/* Value */}
           <div>
             <label className="block text-xs text-slate-400 mb-1.5 font-medium">
-              {form.type === 'percent' ? 'Porcentaje (%)' : 'Monto (MXN)'} *
+              {form.type === 'percent' ? 'Porcentaje (%)' : 'Monto (USD)'} *
             </label>
             <input type="number" min={1} max={form.type === 'percent' ? 100 : undefined} value={form.value}
               onChange={e => set('value', parseFloat(e.target.value) || 0)}
@@ -248,7 +248,7 @@ function CouponModal({ editCoupon, onClose, onSubmit, saving }) {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-slate-400 mb-1.5 font-medium">Compra mínima (MXN)</label>
+              <label className="block text-xs text-slate-400 mb-1.5 font-medium">Compra mínima (USD)</label>
               <input type="number" min={0} value={form.minPurchase}
                 onChange={e => set('minPurchase', parseFloat(e.target.value) || 0)}
                 className="w-full bg-slate-700 border border-slate-600 text-slate-100 text-sm rounded-lg px-3 py-2 focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500/30 outline-none"

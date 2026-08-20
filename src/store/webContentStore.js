@@ -31,7 +31,7 @@ const DEFAULT_TESTIMONIALS = [
 ]
 
 const DEFAULT_ANNOUNCEMENT = {
-  text: '✦ Envío gratis en compras mayores a $2,000 MXN · Garantía de autenticidad certificada ✦',
+  text: '✦ Envío gratis en compras mayores a $2,000 USD · Garantía de autenticidad certificada ✦',
   color: 'black',
 }
 

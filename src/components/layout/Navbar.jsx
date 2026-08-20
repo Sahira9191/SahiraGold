@@ -74,7 +74,7 @@ export default function Navbar() {
       {/* Announcement Bar */}
       <div className="bg-obsidian-950 text-cream-100 text-xs py-2 px-4 text-center tracking-widest">
         <span className="text-gold-400">✦</span>
-        {' '}ENVÍO GRATIS en compras mayores a $5,000 MXN — Certificado de autenticidad incluido{' '}
+        {' '}ENVÍO GRATIS en compras mayores a $5,000 USD — Certificado de autenticidad incluido{' '}
         <span className="text-gold-400">✦</span>
       </div>
 

@@ -11,7 +11,7 @@ import { lsGet, lsSet } from '../../lib/storage';
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const formatPrice = (n) =>
-  new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(n);
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
 
 const today = () => new Date().toISOString().split('T')[0];
 const now   = () => new Date().toISOString();
@@ -194,7 +194,7 @@ function NewOrderModal({ onClose, onSave }) {
                 className="w-full bg-slate-700 border border-slate-600 text-slate-100 text-sm rounded-lg px-3 py-2 focus:border-yellow-500 outline-none" />
             </div>
             <div>
-              <label className="block text-xs text-slate-400 mb-1">Precio unitario (MXN) *</label>
+              <label className="block text-xs text-slate-400 mb-1">Precio unitario (USD) *</label>
               <input type="number" min={0} value={form.itemPrice} onChange={e => set('itemPrice', e.target.value)}
                 className="w-full bg-slate-700 border border-slate-600 text-slate-100 text-sm rounded-lg px-3 py-2 focus:border-yellow-500 outline-none" />
             </div>
@@ -531,7 +531,7 @@ export default function Orders() {
                       <p className="text-slate-500 text-xs">{order.customer.email}</p>
                     </td>
                     <td className="px-4 py-3.5 text-slate-400 whitespace-nowrap">
-                      {new Date(order.date + 'T12:00:00').toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      {new Date(order.date + 'T12:00:00').toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </td>
                     <td className="px-4 py-3.5 text-slate-400">
                       {order.items.length} {order.items.length === 1 ? 'artículo' : 'artículos'}

@@ -98,7 +98,7 @@ const TIENDA_DEFAULT = {
   email: 'hola@sahiragoldcollection.com',
   telefono: '+52 55 1234 5678',
   direccion: 'Av. Presidente Masaryk 111, Polanco, CDMX 11560',
-  moneda: 'MXN',
+  moneda: 'USD',
   zona: 'America/New_York',
 };
 
@@ -149,7 +149,7 @@ function TiendaSection() {
               onChange={e => f('moneda', e.target.value)}
               className="w-full bg-slate-700 border border-slate-600 text-slate-100 text-sm rounded-lg px-3 py-2.5 focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500/30 outline-none"
             >
-              <option value="MXN">MXN — Peso Mexicano</option>
+              <option value="USD">MXN — Peso Mexicano</option>
               <option value="USD">USD — Dólar Americano</option>
             </select>
           </Field>
@@ -203,17 +203,17 @@ function EnvioSection() {
     <div className="space-y-6">
       <SectionCard title="Configuración de envíos" description="Tarifas y políticas de envío para la tienda.">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Costo de envío estándar (MXN)" hint="Se aplica cuando no aplica envío gratis.">
+          <Field label="Costo de envío estándar (USD)" hint="Se aplica cuando no aplica envío gratis.">
             <Input type="number" min={0} value={form.costoEstandar} onChange={e => f('costoEstandar', parseFloat(e.target.value) || 0)} />
           </Field>
-          <Field label="Umbral de envío gratis (MXN)" hint="Compras mayores a este monto tienen envío gratis.">
+          <Field label="Umbral de envío gratis (USD)" hint="Compras mayores a este monto tienen envío gratis.">
             <Input type="number" min={0} value={form.umbralGratis} onChange={e => f('umbralGratis', parseFloat(e.target.value) || 0)} />
           </Field>
           <Field label="Días estimados de entrega" hint="Días hábiles promedio.">
             <Input type="number" min={1} max={30} value={form.diasEntrega} onChange={e => f('diasEntrega', parseInt(e.target.value) || 1)} />
           </Field>
         </div>
-        <Toggle checked={form.envioGratisActivo} onChange={v => f('envioGratisActivo', v)} label="Envío gratis activado" description={`Ofrecer envío gratis en compras mayores a $${form.umbralGratis.toLocaleString('es-MX')} MXN`} />
+        <Toggle checked={form.envioGratisActivo} onChange={v => f('envioGratisActivo', v)} label="Envío gratis activado" description={`Ofrecer envío gratis en compras mayores a $${form.umbralGratis.toLocaleString('en-US')} MXN`} />
         <SaveButton onClick={handleSave} saving={saving} />
       </SectionCard>
     </div>

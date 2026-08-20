@@ -14,10 +14,10 @@ import supabase from '../lib/supabase'
 
 /* ─── Helpers ─────────────────────────────────────────────── */
 const formatPrice = (n) =>
-  new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(n)
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
 
 const formatDate = (d) =>
-  new Date(d).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })
+  new Date(d).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })
 
 const STATUS = {
   'Entregado':  { color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30', icon: CheckCircle },
